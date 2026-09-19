@@ -4,8 +4,8 @@ import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { createRightAuth } from "../../src/core/index.js";
-import { RightAuthStorage } from "../../src/core/storage.js";
+import { createPeffle } from "../../src/core/index.js";
+import { PeffleStorage } from "../../src/core/storage.js";
 import type { PolicyConfig } from "../../src/core/types.js";
 
 const policy: PolicyConfig = {
@@ -44,7 +44,7 @@ function runChild(
 
 describe("cross-process normal guard budget race", () => {
   it("only one concurrent allowed guard can reserve spend over cap", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "rightauth-guard-xproc-"));
+    const dir = mkdtempSync(join(tmpdir(), "peffle-guard-xproc-"));
     const dbPath = join(dir, "ledger.db");
     const policyPath = join(dir, "policy.json");
     writeFileSync(policyPath, JSON.stringify(policy));
@@ -58,7 +58,7 @@ describe("cross-process normal guard budget race", () => {
     const okCount = [a, b].filter((r) => r.out.includes("OK")).length;
     expect(okCount).toBe(1);
 
-    const storage = new RightAuthStorage(dbPath);
+    const storage = new PeffleStorage(dbPath);
     const spent = storage.sumBudgetSpend("global", "total", "race-agent");
     storage.close();
     expect(spent).toBeLessThanOrEqual(100);
@@ -67,13 +67,13 @@ describe("cross-process normal guard budget race", () => {
   }, 30_000);
 
   it("kill during concurrent guard prevents in_progress reservation", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "rightauth-kill-xproc-"));
+    const dir = mkdtempSync(join(tmpdir(), "peffle-kill-xproc-"));
     const dbPath = join(dir, "ledger.db");
     const policyPath = join(dir, "policy.json");
     writeFileSync(policyPath, JSON.stringify(policy));
     const childScript = join(dirname(fileURLToPath(import.meta.url)), "guard-race-child.ts");
 
-    const ra = createRightAuth({ storagePath: dbPath, policy });
+    const ra = createPeffle({ storagePath: dbPath, policy });
     ra.kill("race-agent");
     ra.close();
 

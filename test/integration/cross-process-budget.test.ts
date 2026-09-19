@@ -6,7 +6,7 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {
   ApprovalRequiredError,
-  createRightAuth,
+  createPeffle,
   getApprovalRedemption,
 } from "../../src/core/index.js";
 import type { PolicyConfig } from "../../src/core/types.js";
@@ -49,13 +49,13 @@ function runChild(
 
 describe("cross-process budget race", () => {
   it("only one of two concurrent redemptions can exceed shared cap", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "rightauth-xproc-"));
+    const dir = mkdtempSync(join(tmpdir(), "peffle-xproc-"));
     const dbPath = join(dir, "ledger.db");
     const policyPath = join(dir, "policy.json");
     writeFileSync(policyPath, JSON.stringify(policy));
     const childScript = join(dirname(fileURLToPath(import.meta.url)), "budget-race-child.ts");
 
-    const ra = createRightAuth({ storagePath: dbPath, policy });
+    const ra = createPeffle({ storagePath: dbPath, policy });
     const agent = { agentId: "race-agent" };
     const creds: { eventId: string; token: string }[] = [];
 

@@ -1,24 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
 import { guardTool } from "../../src/mcp/adapter.js";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 describe("MCP approval flow", () => {
   it("require_approval → approve → redeem executes once", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         actions: [{ id: "inv", match: { action: "send_invoice" }, effect: "require_approval" }],
       })
     );
     const handler = vi.fn(() => ({ sent: true }));
     const wrapped = guardTool(handler, "send_invoice", {
-      rightauth: ra,
+      peffle: ra,
       agentId: agent.agentId,
     });
 
     const first = await wrapped({ amount: 12 });
     expect(first).toMatchObject({
       isError: true,
-      rightauthApprovalRequired: true,
+      peffleApprovalRequired: true,
       eventId: expect.any(String),
       redemptionHandle: expect.any(String),
     });
@@ -32,14 +32,14 @@ describe("MCP approval flow", () => {
 
     const second = await wrapped({
       amount: 12,
-      rightauthApproval: { handle: redemptionHandle },
+      peffleApproval: { handle: redemptionHandle },
     });
     expect(second).toEqual({ sent: true });
     expect(handler).toHaveBeenCalledOnce();
 
     const third = await wrapped({
       amount: 12,
-      rightauthApproval: { handle: redemptionHandle },
+      peffleApproval: { handle: redemptionHandle },
     });
     expect(third).toMatchObject({ isError: true });
     expect(handler).toHaveBeenCalledOnce();

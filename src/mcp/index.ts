@@ -1,6 +1,6 @@
 export {
   guardTool,
-  RIGHTAUTH_APPROVAL_PROTOCOL,
+  PEFFLE_APPROVAL_PROTOCOL,
   type McpGuardOptions,
   type McpApprovalRequiredResult,
   type McpGuardToolResult,

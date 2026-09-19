@@ -4,11 +4,11 @@ import {
   ApprovalRequiredError,
   getApprovalRedemption,
 } from "../../src/core/index.js";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 describe("revoke approved grant", () => {
   it("revokes without killing agent", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         actions: [{ id: "inv", match: { action: "send_invoice" }, effect: "require_approval" }],
       })
@@ -32,7 +32,7 @@ describe("revoke approved grant", () => {
   });
 
   it("cannot revoke pending", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         actions: [{ id: "inv", match: { action: "send_invoice" }, effect: "require_approval" }],
       })

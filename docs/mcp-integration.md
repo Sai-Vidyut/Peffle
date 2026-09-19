@@ -1,18 +1,18 @@
 # MCP integration
 
-RightAuth ships `guardTool()` (`rightauth/mcp`) to wrap MCP tool handlers with the same enforcement as `guard()`.
+Peffle ships `guardTool()` (`peffle/mcp`) to wrap MCP tool handlers with the same enforcement as `guard()`.
 
 ## Approval-required responses
 
 When policy requires approval, the wrapped tool returns a structured error (not a thrown exception) containing:
 
-- `eventId` — ledger event to approve via CLI or `rightauth approve`
+- `eventId` — ledger event to approve via CLI or `peffle approve`
 - `redemptionHandle` — opaque in-process credential for follow-up calls
 
 Clients should retry the **same tool call** with:
 
 ```json
-{ "rightauthApproval": { "handle": "<redemptionHandle>" } }
+{ "peffleApproval": { "handle": "<redemptionHandle>" } }
 ```
 
 Alternatively, trusted callers in the same process may pass `{ "eventId", "token" }` from the initial `ApprovalRequiredError` (never log or serialize the token).

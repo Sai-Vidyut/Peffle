@@ -6,9 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Core SDK: `createRightAuth`, `checkPolicy`, `guard`, kill switch, ledger query.
+- Core SDK: `createPeffle`, `checkPolicy`, `guard`, kill switch, ledger query.
 - Single-use approval binding with fingerprinted redemption (`GuardApproval`).
 - SQLite ledger (`better-sqlite3`) with WAL and busy timeout.
 - CLI: `init`, `status`, `ledger`, `pending`, `approve`, `deny`, `kill`, `revive`.
-- MCP adapter (`rightauth/mcp`): `guardTool`.
+- MCP adapter (`peffle/mcp`): `guardTool`.
 - Example MCP email agent under `examples/mcp-email-agent`.

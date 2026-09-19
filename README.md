@@ -1,4 +1,4 @@
-# RightAuth
+# Peffle
 
 Stop your AI agent before it drains your budget or spams your customers — a **local, free** kill switch, approval flow, and audit ledger for agent tool calls.
 
@@ -10,15 +10,15 @@ Real incidents that motivated this:
 ## Install
 
 ```bash
-npm install rightauth
+npm install peffle
 ```
 
 ## Quick start
 
 ```typescript
-import { createRightAuth } from "rightauth";
+import { createPeffle } from "peffle";
 
-const ra = createRightAuth({
+const ra = createPeffle({
   policy: {
     version: 1,
     defaults: { onNoMatchingRule: "deny" },
@@ -41,19 +41,19 @@ ra.kill("my-agent"); // instant local kill switch
 ### MCP tool wrapper
 
 ```typescript
-import { createRightAuth } from "rightauth";
-import { guardTool } from "rightauth/mcp";
+import { createPeffle } from "peffle";
+import { guardTool } from "peffle/mcp";
 
-const ra = createRightAuth({ policyPath: "./rightauth.policy.json" });
+const ra = createPeffle({ policyPath: "./peffle.policy.json" });
 
 const sendEmail = guardTool(
   async (args: { to: string }) => ({ ok: true, to: args.to }),
   "send_email",
-  { rightauth: ra, agentId: "server-agent" }
+  { peffle: ra, agentId: "server-agent" }
 );
 ```
 
-When approval is required, the tool response includes a **process-local** `redemptionHandle`. Retry with `{ rightauthApproval: { handle } }` on the **same MCP server process**, or pass `{ eventId, token }` when the client holds the token (multi-worker setups). Handles expire after the configured TTL; restarting the server invalidates outstanding handles. Details: [docs/mcp-integration.md](./docs/mcp-integration.md).
+When approval is required, the tool response includes a **process-local** `redemptionHandle`. Retry with `{ peffleApproval: { handle } }` on the **same MCP server process**, or pass `{ eventId, token }` when the client holds the token (multi-worker setups). Handles expire after the configured TTL; restarting the server invalidates outstanding handles. Details: [docs/mcp-integration.md](./docs/mcp-integration.md).
 
 ### Approval flow
 
@@ -82,11 +82,11 @@ See [docs/mcp-integration.md](./docs/mcp-integration.md) for MCP redemption hand
 ## CLI
 
 ```bash
-npx rightauth init
-npx rightauth pending
-npx rightauth approve <eventId>
-npx rightauth kill <agentId>
-npx rightauth ledger --json
+npx peffle init
+npx peffle pending
+npx peffle approve <eventId>
+npx peffle kill <agentId>
+npx peffle ledger --json
 ```
 
 ## Example

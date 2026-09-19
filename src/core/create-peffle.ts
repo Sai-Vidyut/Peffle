@@ -1,18 +1,18 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { ActionRequest, GuardOptions, LedgerFilter, RightAuth, RightAuthConfig } from "./types.js";
+import type { ActionRequest, GuardOptions, LedgerFilter, Peffle, PeffleConfig } from "./types.js";
 import { loadPolicyFromJson } from "./schema.js";
-import { RightAuthStorage } from "./storage.js";
+import { PeffleStorage } from "./storage.js";
 import { checkPolicy as evaluatePolicy } from "./policy.js";
 import { runGuard } from "./guard.js";
 import { approveEvent, denyEvent, revokeApprovedEvent, waitForApprovalEvent } from "./approval.js";
 import { assertValidAmount } from "./validate-request.js";
 
-const DEFAULT_STORAGE = "./.rightauth/ledger.db";
-const DEFAULT_POLICY = "./rightauth.policy.json";
+const DEFAULT_STORAGE = "./.peffle/ledger.db";
+const DEFAULT_POLICY = "./peffle.policy.json";
 const DEFAULT_APPROVAL_TTL_MS = 15 * 60 * 1000;
 
-function loadPolicy(config: RightAuthConfig) {
+function loadPolicy(config: PeffleConfig) {
   if (config.policy) return config.policy;
   const path = resolve(config.policyPath ?? DEFAULT_POLICY);
   try {
@@ -32,11 +32,11 @@ function loadPolicy(config: RightAuthConfig) {
   }
 }
 
-export function createRightAuth(config: RightAuthConfig = {}): RightAuth {
+export function createPeffle(config: PeffleConfig = {}): Peffle {
   const rawPath = config.storagePath ?? DEFAULT_STORAGE;
   const storagePath = rawPath === ":memory:" ? ":memory:" : resolve(rawPath);
   const policy = loadPolicy(config);
-  const storage = new RightAuthStorage(storagePath);
+  const storage = new PeffleStorage(storagePath);
   const approvalRedeemTtlMs = config.approvalRedeemTtlMs ?? DEFAULT_APPROVAL_TTL_MS;
 
   const ctx = { storage, policy, config };

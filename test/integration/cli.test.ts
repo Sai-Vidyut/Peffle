@@ -8,7 +8,7 @@ const bin = join(process.cwd(), "dist/cli/bin.js");
 
 describe("cli", () => {
   it("kill then status runs without error", () => {
-    const dir = mkdtempSync(join(tmpdir(), "rightauth-cli-"));
+    const dir = mkdtempSync(join(tmpdir(), "peffle-cli-"));
     const db = join(dir, "ledger.db");
     const policy = join(dir, "policy.json");
     writeFileSync(
@@ -21,11 +21,11 @@ describe("cli", () => {
       })
     );
     execFileSync(process.execPath, [bin, "kill", "cli-agent", "--reason", "test"], {
-      env: { ...process.env, RIGHTAUTH_STORAGE: db, RIGHTAUTH_POLICY: policy },
+      env: { ...process.env, PEFFLE_STORAGE: db, PEFFLE_POLICY: policy },
       cwd: dir,
     });
     const out = execFileSync(process.execPath, [bin, "status", "--agent", "cli-agent"], {
-      env: { ...process.env, RIGHTAUTH_STORAGE: db, RIGHTAUTH_POLICY: policy },
+      env: { ...process.env, PEFFLE_STORAGE: db, PEFFLE_POLICY: policy },
       cwd: dir,
       encoding: "utf8",
     });

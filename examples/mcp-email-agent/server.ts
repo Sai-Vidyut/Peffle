@@ -4,29 +4,29 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
-import { createRightAuth } from "../../src/core/index.js";
+import { createPeffle } from "../../src/core/index.js";
 import { parsePolicyConfig } from "../../src/core/schema.js";
 import { guardTool } from "../../src/mcp/index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const storagePath = process.env.RIGHTAUTH_STORAGE ?? join(__dirname, ".rightauth/ledger.db");
-const policyPath = process.env.RIGHTAUTH_POLICY ?? join(__dirname, "rightauth.policy.json");
-const agentId = process.env.RIGHTAUTH_AGENT_ID ?? "mcp-email-agent";
+const storagePath = process.env.PEFFLE_STORAGE ?? join(__dirname, ".peffle/ledger.db");
+const policyPath = process.env.PEFFLE_POLICY ?? join(__dirname, "peffle.policy.json");
+const agentId = process.env.PEFFLE_AGENT_ID ?? "mcp-email-agent";
 
-const ra = createRightAuth({
+const ra = createPeffle({
   storagePath,
   policy: parsePolicyConfig(readFileSync(policyPath, "utf8")),
 });
 
-const server = new McpServer({ name: "rightauth-email-demo", version: "0.1.0" });
-const guardOpts = { rightauth: ra, agentId };
+const server = new McpServer({ name: "peffle-email-demo", version: "0.1.0" });
+const guardOpts = { peffle: ra, agentId };
 
 function asToolResult(out: unknown) {
   if (out && typeof out === "object" && "isError" in out) {
     return out as {
       content: { type: "text"; text: string }[];
       isError: true;
-      rightauthApprovalRequired?: boolean;
+      peffleApprovalRequired?: boolean;
       eventId?: string;
       redemptionHandle?: string;
     };
@@ -49,7 +49,7 @@ server.registerTool(
     description: "Send a mock invoice",
     inputSchema: {
       amount: z.number().describe("Invoice amount in dollars"),
-      rightauthApproval: z
+      peffleApproval: z
         .object({
           handle: z.string().optional(),
           eventId: z.string().optional(),
@@ -59,13 +59,13 @@ server.registerTool(
         .describe("Redemption handle (preferred) or eventId+token from a prior approval-required response"),
     },
   },
-  async ({ amount, rightauthApproval }) => {
+  async ({ amount, peffleApproval }) => {
     const run = guardTool(
       async (a: { amount: number }) => ({ ok: true, amount: a.amount }),
       "send_invoice",
       guardOpts
     );
-    return asToolResult(await run({ amount, rightauthApproval }));
+    return asToolResult(await run({ amount, peffleApproval }));
   }
 );
 

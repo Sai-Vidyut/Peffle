@@ -1,5 +1,5 @@
-import type { PolicyConfig, RightAuthConfig } from "../src/core/types.js";
-import { createRightAuth } from "../src/core/index.js";
+import type { PolicyConfig, PeffleConfig } from "../src/core/types.js";
+import { createPeffle } from "../src/core/index.js";
 
 export function testPolicy(overrides?: Partial<PolicyConfig>): PolicyConfig {
   const base: PolicyConfig = {
@@ -17,8 +17,8 @@ export function testPolicy(overrides?: Partial<PolicyConfig>): PolicyConfig {
   };
 }
 
-export function memoryRightAuth(policy: PolicyConfig, config?: Omit<RightAuthConfig, "policy" | "storagePath">) {
-  return createRightAuth({
+export function memoryPeffle(policy: PolicyConfig, config?: Omit<PeffleConfig, "policy" | "storagePath">) {
+  return createPeffle({
     storagePath: ":memory:",
     policy,
     ...config,

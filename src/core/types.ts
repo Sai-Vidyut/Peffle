@@ -93,7 +93,7 @@ export interface ActionRule {
   reason?: string;
 }
 
-export interface RightAuthConfig {
+export interface PeffleConfig {
   storagePath?: string;
   policyPath?: string;
   policy?: PolicyConfig;
@@ -101,7 +101,7 @@ export interface RightAuthConfig {
   approvalRedeemTtlMs?: number;
 }
 
-export interface RightAuth {
+export interface Peffle {
   /** Advisory only — see `checkPolicy` in policy module; use `guard()` to enforce. */
   checkPolicy(request: ActionRequest): PolicyDecision;
   guard<T>(

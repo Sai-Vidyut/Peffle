@@ -1,4 +1,4 @@
-import { createRightAuth, loadPolicyFromJson } from "../../dist/core/index.js";
+import { createPeffle, loadPolicyFromJson } from "../../dist/core/index.js";
 import { readFileSync } from "node:fs";
 
 const dbPath = process.argv.at(-3);
@@ -7,7 +7,7 @@ const amountStr = process.argv.at(-1);
 if (!dbPath || !policyPath || !amountStr) process.exit(2);
 
 const policy = loadPolicyFromJson(readFileSync(policyPath, "utf8"));
-const ra = createRightAuth({ storagePath: dbPath, policy });
+const ra = createPeffle({ storagePath: dbPath, policy });
 const agent = { agentId: "race-agent" };
 
 try {

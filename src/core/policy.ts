@@ -1,9 +1,9 @@
 import type { ActionRequest, PolicyConfig, PolicyDecision } from "./types.js";
-import type { RightAuthStorage } from "./storage.js";
+import type { PeffleStorage } from "./storage.js";
 import { matchActionRule } from "./util.js";
 
 export function isAgentEffectivelyKilled(
-  storage: RightAuthStorage,
+  storage: PeffleStorage,
   agent: ActionRequest["agent"]
 ): { killed: boolean; agentId?: string } {
   if (storage.getAgentStatus(agent.agentId) === "killed") {
@@ -18,7 +18,7 @@ export function isAgentEffectivelyKilled(
 }
 
 export function evaluateBudgets(
-  storage: RightAuthStorage,
+  storage: PeffleStorage,
   policy: PolicyConfig,
   request: ActionRequest
 ): PolicyDecision | null {
@@ -75,7 +75,7 @@ export function evaluateBudgets(
  * execution time, or redeem approvals. All real actions must go through `guard()`.
  */
 export function checkPolicy(
-  storage: RightAuthStorage,
+  storage: PeffleStorage,
   policy: PolicyConfig,
   request: ActionRequest,
   options?: { skipActionRules?: boolean }

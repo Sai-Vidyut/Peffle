@@ -1,5 +1,5 @@
 {
-  "name": "rightauth",
+  "name": "peffle",
   "version": "0.1.0",
   "description": "Local-first kill switch, policy enforcement, and audit ledger for AI agent tool calls",
   "license": "Apache-2.0",
@@ -17,7 +17,7 @@
     }
   },
   "bin": {
-    "rightauth": "./dist/cli/bin.js"
+    "peffle": "dist/cli/bin.js"
   },
   "files": ["dist", "README.md", "LICENSE"],
   "scripts": {

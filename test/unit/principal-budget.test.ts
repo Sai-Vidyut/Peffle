@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 describe("principal-scoped budgets", () => {
   it("denies when principal is missing for principal scope", () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         budgets: [{ id: "p-cap", scope: "principal", window: "total", limit: 100 }],
         actions: [{ id: "a", match: { action: "pay" }, effect: "allow" }],
@@ -16,7 +16,7 @@ describe("principal-scoped budgets", () => {
   });
 
   it("principal-less agent is not denied by appliesTo.principal rule for another org", () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         budgets: [
           {
@@ -36,7 +36,7 @@ describe("principal-scoped budgets", () => {
   });
 
   it("enforces appliesTo.principal when agent principal matches", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         budgets: [
           {
@@ -59,7 +59,7 @@ describe("principal-scoped budgets", () => {
   });
 
   it("appliesTo.principal rule does not cap spend for a different principal", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         budgets: [
           {
@@ -87,7 +87,7 @@ describe("principal-scoped budgets", () => {
   });
 
   it("multiple principal rules evaluate independently", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         budgets: [
           {
@@ -126,7 +126,7 @@ describe("principal-scoped budgets", () => {
   });
 
   it("counts spend only for matching principal", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         budgets: [{ id: "p-cap", scope: "principal", window: "total", limit: 5 }],
         actions: [{ id: "a", match: { action: "pay" }, effect: "allow" }],

@@ -6,6 +6,6 @@ dist/
 *.sqlite
 .DS_Store
 coverage/
-.rightauth/
+.peffle/
 credentials
 tokens

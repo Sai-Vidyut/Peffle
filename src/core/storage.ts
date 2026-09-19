@@ -9,7 +9,7 @@ import type {
   EventStatus,
   LedgerFilter,
 } from "./types.js";
-import { RightAuthError, StorageError } from "./errors.js";
+import { PeffleError, StorageError } from "./errors.js";
 import { escapeLikePattern, globMatch, nowIso, utcDayStartIso } from "./util.js";
 
 const SCHEMA_VERSION = "2";
@@ -113,7 +113,7 @@ function rowToEvent(row: EventRow): ActionEvent {
   };
 }
 
-export class RightAuthStorage {
+export class PeffleStorage {
   readonly db: Database.Database;
 
   constructor(storagePath: string) {
@@ -158,7 +158,7 @@ export class RightAuthStorage {
     try {
       return fn();
     } catch (e) {
-      if (e instanceof StorageError || e instanceof RightAuthError) throw e;
+      if (e instanceof StorageError || e instanceof PeffleError) throw e;
       throw new StorageError(`${operation} failed`, e);
     }
   }

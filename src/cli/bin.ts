@@ -2,30 +2,30 @@
 import { Command } from "commander";
 import { writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { createRightAuth, DEFAULT_POLICY_EXAMPLE } from "../core/index.js";
+import { createPeffle, DEFAULT_POLICY_EXAMPLE } from "../core/index.js";
 
-function openRightAuth(storage?: string, policy?: string) {
-  return createRightAuth({
-    storagePath: storage ?? process.env.RIGHTAUTH_STORAGE ?? "./.rightauth/ledger.db",
-    policyPath: policy ?? process.env.RIGHTAUTH_POLICY ?? "./rightauth.policy.json",
+function openPeffle(storage?: string, policy?: string) {
+  return createPeffle({
+    storagePath: storage ?? process.env.PEFFLE_STORAGE ?? "./.peffle/ledger.db",
+    policyPath: policy ?? process.env.PEFFLE_POLICY ?? "./peffle.policy.json",
   });
 }
 
 const program = new Command();
 
 program
-  .name("rightauth")
+  .name("peffle")
   .description("Local policy, kill switch, and audit ledger for AI agents")
-  .option("--storage <path>", "SQLite ledger path", process.env.RIGHTAUTH_STORAGE)
-  .option("--policy <path>", "Policy JSON path", process.env.RIGHTAUTH_POLICY);
+  .option("--storage <path>", "SQLite ledger path", process.env.PEFFLE_STORAGE)
+  .option("--policy <path>", "Policy JSON path", process.env.PEFFLE_POLICY);
 
 program
   .command("init")
-  .description("Scaffold a starter rightauth.policy.json")
+  .description("Scaffold a starter peffle.policy.json")
   .action(() => {
-    const path = resolve("rightauth.policy.json");
+    const path = resolve("peffle.policy.json");
     if (existsSync(path)) {
-      console.error("rightauth.policy.json already exists");
+      console.error("peffle.policy.json already exists");
       process.exit(1);
     }
     writeFileSync(path, JSON.stringify(DEFAULT_POLICY_EXAMPLE, null, 2) + "\n");
@@ -37,13 +37,13 @@ program
   .option("--agent <id>", "Filter by agent")
   .action((opts, cmd) => {
     const globals = cmd.optsWithGlobals();
-    const ra = openRightAuth(globals.storage, globals.policy);
+    const ra = openPeffle(globals.storage, globals.policy);
     try {
       if (opts.agent) {
         const killed = ra.query({ agentId: opts.agent, limit: 1 });
         console.log(`Agent ${opts.agent}: see ledger for activity (${killed.length} recent events)`);
       } else {
-        console.log("RightAuth ledger active. Use `rightauth ledger` for details.");
+        console.log("Peffle ledger active. Use `peffle ledger` for details.");
       }
     } finally {
       ra.close();
@@ -59,7 +59,7 @@ program
   .option("--json", "JSON output")
   .action((opts, cmd) => {
     const globals = cmd.optsWithGlobals();
-    const ra = openRightAuth(globals.storage, globals.policy);
+    const ra = openPeffle(globals.storage, globals.policy);
     try {
       const events = ra.query({
         agentId: opts.agent,
@@ -86,7 +86,7 @@ program
   .description("List pending approval events")
   .action((_opts, cmd) => {
     const globals = cmd.optsWithGlobals();
-    const ra = openRightAuth(globals.storage, globals.policy);
+    const ra = openPeffle(globals.storage, globals.policy);
     try {
       const events = ra.query({ status: "pending" });
       for (const e of events) {
@@ -102,7 +102,7 @@ program
   .option("--note <text>")
   .action((eventId: string, opts, cmd) => {
     const globals = cmd.optsWithGlobals();
-    const ra = openRightAuth(globals.storage, globals.policy);
+    const ra = openPeffle(globals.storage, globals.policy);
     try {
       ra.approve(eventId, { note: opts.note });
       console.log(`Approved ${eventId}`);
@@ -117,7 +117,7 @@ program
   .option("--note <text>")
   .action((eventId: string, opts, cmd) => {
     const globals = cmd.optsWithGlobals();
-    const ra = openRightAuth(globals.storage, globals.policy);
+    const ra = openPeffle(globals.storage, globals.policy);
     try {
       ra.revoke(eventId, { note: opts.note });
       console.log(`Revoked approval for ${eventId}`);
@@ -131,7 +131,7 @@ program
   .option("--note <text>")
   .action((eventId: string, opts, cmd) => {
     const globals = cmd.optsWithGlobals();
-    const ra = openRightAuth(globals.storage, globals.policy);
+    const ra = openPeffle(globals.storage, globals.policy);
     try {
       ra.deny(eventId, { note: opts.note });
       console.log(`Denied ${eventId}`);
@@ -145,7 +145,7 @@ program
   .option("--reason <text>")
   .action((agentId: string, opts, cmd) => {
     const globals = cmd.optsWithGlobals();
-    const ra = openRightAuth(globals.storage, globals.policy);
+    const ra = openPeffle(globals.storage, globals.policy);
     try {
       ra.kill(agentId, { reason: opts.reason });
       console.log(`Killed agent ${agentId}`);
@@ -159,7 +159,7 @@ program
   .option("--reason <text>")
   .action((agentId: string, _opts, cmd) => {
     const globals = cmd.optsWithGlobals();
-    const ra = openRightAuth(globals.storage, globals.policy);
+    const ra = openPeffle(globals.storage, globals.policy);
     try {
       ra.revive(agentId);
       console.log(`Revived agent ${agentId}`);

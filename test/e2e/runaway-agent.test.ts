@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import {
   ApprovalRequiredError,
   BudgetExceededError,
-  createRightAuth,
+  createPeffle,
   getApprovalRedemption,
 } from "../../src/core/index.js";
 import type { PolicyConfig } from "../../src/core/types.js";
@@ -24,9 +24,9 @@ const demoPolicy: PolicyConfig = {
 
 describe("e2e runaway agent scenario", () => {
   it("caps email spend then gates invoices separately", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "rightauth-e2e-"));
+    const dir = mkdtempSync(join(tmpdir(), "peffle-e2e-"));
     const dbPath = join(dir, "ledger.db");
-    const ra = createRightAuth({ storagePath: dbPath, policy: demoPolicy });
+    const ra = createPeffle({ storagePath: dbPath, policy: demoPolicy });
     const agent = { agentId: "demo-agent" };
 
     for (let i = 0; i < 3; i++) {

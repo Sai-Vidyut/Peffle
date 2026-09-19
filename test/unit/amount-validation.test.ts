@@ -1,9 +1,9 @@
 import { describe, expect, it, afterAll } from "vitest";
 import { InvalidAmountError } from "../../src/core/index.js";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 describe("amount validation", () => {
-  const ra = memoryRightAuth(
+  const ra = memoryPeffle(
     testPolicy({
       budgets: [{ id: "b", scope: "global", window: "total", limit: 10 }],
       actions: [{ id: "a", match: { action: "pay" }, effect: "allow" }],
@@ -34,7 +34,7 @@ describe("amount validation", () => {
   });
 
   it("NaN cannot poison budget accounting", async () => {
-    const poison = memoryRightAuth(
+    const poison = memoryPeffle(
       testPolicy({
         budgets: [{ id: "b", scope: "global", window: "total", limit: 5 }],
         actions: [{ id: "a", match: { action: "pay" }, effect: "allow" }],

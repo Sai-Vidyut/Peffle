@@ -1,6 +1,6 @@
 # MCP email agent demo
 
-Scripted agent that exercises RightAuth budgets, approval, and kill switch.
+Scripted agent that exercises Peffle budgets, approval, and kill switch.
 
 ```bash
 npm install
@@ -11,6 +11,6 @@ node --import tsx examples/mcp-email-agent/client.ts
 Use a second terminal to approve pending events:
 
 ```bash
-npx rightauth pending --storage ./examples/mcp-email-agent/.rightauth/ledger.db
-npx rightauth approve <eventId> --storage ./examples/mcp-email-agent/.rightauth/ledger.db
+npx peffle pending --storage ./examples/mcp-email-agent/.peffle/ledger.db
+npx peffle approve <eventId> --storage ./examples/mcp-email-agent/.peffle/ledger.db
 ```

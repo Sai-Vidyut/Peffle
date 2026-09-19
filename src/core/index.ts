@@ -1,4 +1,4 @@
-export { createRightAuth } from "./create-rightauth.js";
+export { createPeffle } from "./create-peffle.js";
 export type {
   ActionEvent,
   ActionRequest,
@@ -11,11 +11,11 @@ export type {
   LedgerFilter,
   PolicyConfig,
   PolicyDecision,
-  RightAuth,
-  RightAuthConfig,
+  Peffle,
+  PeffleConfig,
 } from "./types.js";
 export {
-  RightAuthError,
+  PeffleError,
   ConfigValidationError,
   AgentKilledError,
   PolicyDeniedError,

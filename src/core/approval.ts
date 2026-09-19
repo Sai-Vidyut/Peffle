@@ -1,5 +1,5 @@
 import type { ActionEvent } from "./types.js";
-import type { RightAuthStorage } from "./storage.js";
+import type { PeffleStorage } from "./storage.js";
 import {
   ApprovalAlreadyResolvedError,
   ApprovalAlreadyConsumedError,
@@ -13,7 +13,7 @@ import { isAgentEffectivelyKilled } from "./policy.js";
 const DEFAULT_POLL_MS = 250;
 
 export function approveEvent(
-  storage: RightAuthStorage,
+  storage: PeffleStorage,
   eventId: string,
   ttlMs: number,
   note?: string
@@ -38,7 +38,7 @@ export function approveEvent(
 }
 
 export function denyEvent(
-  storage: RightAuthStorage,
+  storage: PeffleStorage,
   eventId: string,
   note?: string
 ): void {
@@ -52,7 +52,7 @@ export function denyEvent(
 }
 
 export function revokeApprovedEvent(
-  storage: RightAuthStorage,
+  storage: PeffleStorage,
   eventId: string,
   note?: string
 ): void {
@@ -71,7 +71,7 @@ export function revokeApprovedEvent(
 }
 
 export async function waitForApprovalEvent(
-  storage: RightAuthStorage,
+  storage: PeffleStorage,
   eventId: string,
   timeoutMs = 30_000
 ): Promise<ActionEvent> {

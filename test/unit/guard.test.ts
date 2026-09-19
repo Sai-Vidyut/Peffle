@@ -5,11 +5,11 @@ import {
   PolicyDeniedError,
   PrincipalRequiredError,
 } from "../../src/core/index.js";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 describe("guard", () => {
   it("executes fn on allow", async () => {
-    const ra = memoryRightAuth(testPolicy());
+    const ra = memoryPeffle(testPolicy());
     const fn = vi.fn(() => "ok");
     const result = await ra.guard({ agent, action: "read_x" }, fn);
     expect(result).toBe("ok");
@@ -18,7 +18,7 @@ describe("guard", () => {
   });
 
   it("does not call fn on deny", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         actions: [{ id: "d", match: { action: "bad" }, effect: "deny" }],
       })
@@ -32,7 +32,7 @@ describe("guard", () => {
   });
 
   it("require_approval throws without running fn", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         actions: [
           { id: "inv", match: { action: "send_invoice" }, effect: "require_approval" },
@@ -48,7 +48,7 @@ describe("guard", () => {
   });
 
   it("throws PrincipalRequiredError for principal-scoped budget without principal", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         budgets: [{ id: "p-cap", scope: "principal", window: "total", limit: 100 }],
         actions: [{ id: "a", match: { action: "pay" }, effect: "allow" }],
@@ -61,7 +61,7 @@ describe("guard", () => {
   });
 
   it("budget concurrency allows only one of two overspend calls", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         budgets: [{ id: "b", scope: "global", window: "total", limit: 100 }],
         actions: [{ id: "a", match: { action: "*" }, effect: "allow" }],

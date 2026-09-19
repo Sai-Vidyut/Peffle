@@ -4,19 +4,19 @@ import {
   ApprovalAlreadyConsumedError,
   ApprovalRequiredError,
   BudgetExceededError,
-  createRightAuth,
+  createPeffle,
   getApprovalRedemption,
 } from "../../src/core/index.js";
 import { readFileSync } from "node:fs";
 import { loadPolicyFromJson } from "../../src/core/schema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const storagePath = join(__dirname, ".rightauth/ledger.db");
+const storagePath = join(__dirname, ".peffle/ledger.db");
 const policy = loadPolicyFromJson(
-  readFileSync(join(__dirname, "rightauth.policy.json"), "utf8")
+  readFileSync(join(__dirname, "peffle.policy.json"), "utf8")
 );
 
-const ra = createRightAuth({ storagePath, policy });
+const ra = createPeffle({ storagePath, policy });
 const agent = { agentId: "email-demo" };
 
 async function sendEmail() {
@@ -57,7 +57,7 @@ async function main() {
       eventId = creds.eventId;
       token = creds.token;
       console.log("Pending approval:", eventId);
-      console.log("Run: rightauth approve", eventId);
+      console.log("Run: peffle approve", eventId);
       ra.approve(eventId);
     } else {
       throw e;

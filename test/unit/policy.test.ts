@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 describe("checkPolicy", () => {
   it("allows when default is allow and rule matches allow", () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         defaults: { onNoMatchingRule: "allow" },
         actions: [],
@@ -14,7 +14,7 @@ describe("checkPolicy", () => {
   });
 
   it("denies when default is deny and no rule matches", () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         defaults: { onNoMatchingRule: "deny" },
         actions: [],
@@ -26,7 +26,7 @@ describe("checkPolicy", () => {
   });
 
   it("first match wins for action rules", () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         actions: [
           { id: "deny-first", match: { action: "send_*" }, effect: "deny" },
@@ -39,7 +39,7 @@ describe("checkPolicy", () => {
   });
 
   it("glob matches send_*", () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         actions: [{ id: "a", match: { action: "send_*" }, effect: "deny" }],
       })
@@ -50,7 +50,7 @@ describe("checkPolicy", () => {
   });
 
   it("denies killed agent", () => {
-    const ra = memoryRightAuth(testPolicy());
+    const ra = memoryPeffle(testPolicy());
     ra.kill("agent-1");
     const d = ra.checkPolicy({ agent, action: "read_x" });
     expect(d.outcome).toBe("deny");
@@ -59,7 +59,7 @@ describe("checkPolicy", () => {
   });
 
   it("denies when ancestor is killed", () => {
-    const ra = memoryRightAuth(testPolicy());
+    const ra = memoryPeffle(testPolicy());
     ra.kill("parent");
     const d = ra.checkPolicy({
       agent: { agentId: "child", delegationChain: ["parent"] },

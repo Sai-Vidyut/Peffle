@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { AgentKilledError } from "../../src/core/index.js";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 describe("checkPolicy advisory pattern", () => {
   it("checkPolicy allow does not bypass kill switch in guard", async () => {
-    const ra = memoryRightAuth(testPolicy());
+    const ra = memoryPeffle(testPolicy());
     expect(ra.checkPolicy({ agent, action: "read_docs" }).outcome).toBe("allow");
     ra.kill(agent.agentId);
     expect(ra.checkPolicy({ agent, action: "read_docs" }).outcome).toBe("deny");
@@ -17,7 +17,7 @@ describe("checkPolicy advisory pattern", () => {
   });
 
   it("documented correct pattern uses guard for side effects", async () => {
-    const ra = memoryRightAuth(testPolicy());
+    const ra = memoryPeffle(testPolicy());
     const fn = vi.fn(() => "done");
     const decision = ra.checkPolicy({ agent, action: "read_docs" });
     expect(decision.outcome).toBe("allow");

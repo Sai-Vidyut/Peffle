@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { guardTool } from "../../src/mcp/adapter.js";
 import { peekMcpRedemptionHandle } from "../../src/mcp/redemption-registry.js";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 describe("MCP redemption handle retry", () => {
   it("keeps handle after budget exhaustion then redeems on retry", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         budgets: [{ id: "cap", scope: "global", window: "total", limit: 10 }],
         actions: [
@@ -16,12 +16,12 @@ describe("MCP redemption handle retry", () => {
     );
     const handler = vi.fn(() => ({ sent: true }));
     const wrapped = guardTool(handler, "send_invoice", {
-      rightauth: ra,
+      peffle: ra,
       agentId: agent.agentId,
     });
 
     const first = await wrapped({ amount: 8 });
-    expect(first).toMatchObject({ rightauthApprovalRequired: true });
+    expect(first).toMatchObject({ peffleApprovalRequired: true });
     const { eventId, redemptionHandle } = first as {
       eventId: string;
       redemptionHandle: string;
@@ -41,7 +41,7 @@ describe("MCP redemption handle retry", () => {
 
     const fail = await wrapped({
       amount: 8,
-      rightauthApproval: { handle: redemptionHandle },
+      peffleApproval: { handle: redemptionHandle },
     });
     expect(fail).toMatchObject({ isError: true });
     expect(String((fail as { content: { text: string }[] }).content[0].text)).toMatch(
@@ -57,7 +57,7 @@ describe("MCP redemption handle retry", () => {
 
     const ok = await wrapped({
       amount: 8,
-      rightauthApproval: { handle: redemptionHandle },
+      peffleApproval: { handle: redemptionHandle },
     });
     expect(ok).toEqual({ sent: true });
     expect(handler).toHaveBeenCalledOnce();

@@ -1,6 +1,6 @@
 # Policy schema
 
-See `rightauth.policy.json` and `DEFAULT_POLICY_EXAMPLE` in the package.
+See `peffle.policy.json` and `DEFAULT_POLICY_EXAMPLE` in the package.
 
 Evaluation order:
 

@@ -1,5 +1,5 @@
-import type { ActionRequest, GuardOptions, PolicyConfig, RightAuthConfig, PolicyDecision } from "./types.js";
-import type { RightAuthStorage } from "./storage.js";
+import type { ActionRequest, GuardOptions, PolicyConfig, PeffleConfig, PolicyDecision } from "./types.js";
+import type { PeffleStorage } from "./storage.js";
 import { checkPolicy, evaluateBudgets, isAgentEffectivelyKilled } from "./policy.js";
 import {
   AgentKilledError,
@@ -26,9 +26,9 @@ import {
 import { normalizeActionRequest } from "./validate-request.js";
 
 export interface GuardContext {
-  storage: RightAuthStorage;
+  storage: PeffleStorage;
   policy: PolicyConfig;
-  config: RightAuthConfig;
+  config: PeffleConfig;
 }
 
 function throwForDeny(decision: Extract<PolicyDecision, { outcome: "deny" }>, eventId: string): never {

@@ -14,9 +14,9 @@ import {
   ApprovalTokenInvalidError,
   AgentKilledError,
   BudgetExceededError,
-  createRightAuth,
+  createPeffle,
 } from "../../src/core/index.js";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 const approvalPolicy = testPolicy({
   actions: [
@@ -26,7 +26,7 @@ const approvalPolicy = testPolicy({
 
 describe("approval redemption", () => {
   it("redeems once after approve", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 25 };
     let token = "";
     let eventId = "";
@@ -51,7 +51,7 @@ describe("approval redemption", () => {
   });
 
   it("approve returns void (no token in API)", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 1 };
     let eventId = "";
     try {
@@ -64,7 +64,7 @@ describe("approval redemption", () => {
   });
 
   it("rejects wrong token", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 1 };
     let eventId = "";
     try {
@@ -80,7 +80,7 @@ describe("approval redemption", () => {
   });
 
   it("rejects fingerprint mismatch", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 5 };
     let token = "";
     let eventId = "";
@@ -101,7 +101,7 @@ describe("approval redemption", () => {
   });
 
   it("pending redemption throws not yet granted", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 1 };
     let token = "";
     let eventId = "";
@@ -119,7 +119,7 @@ describe("approval redemption", () => {
   });
 
   it("deny blocks redemption", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 1 };
     let token = "";
     let eventId = "";
@@ -138,7 +138,7 @@ describe("approval redemption", () => {
   });
 
   it("double approve throws", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 1 };
     let eventId = "";
     try {
@@ -152,7 +152,7 @@ describe("approval redemption", () => {
   });
 
   it("rejects expired approval grant", async () => {
-    const ra = memoryRightAuth(approvalPolicy, { approvalRedeemTtlMs: 5 });
+    const ra = memoryPeffle(approvalPolicy, { approvalRedeemTtlMs: 5 });
     const req = { agent, action: "send_invoice", amount: 1 };
     let token = "";
     let eventId = "";
@@ -172,7 +172,7 @@ describe("approval redemption", () => {
   });
 
   it("concurrent redemption allows only one success", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 2 };
     let token = "";
     let eventId = "";
@@ -199,7 +199,7 @@ describe("approval redemption", () => {
   });
 
   it("rejects redemption when budget exhausted since approval", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         budgets: [{ id: "cap", scope: "global", window: "total", limit: 10 }],
         actions: [
@@ -228,11 +228,11 @@ describe("approval redemption", () => {
   });
 
   it("cross-process approve visible to waitForApproval", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "rightauth-wal-"));
+    const dir = mkdtempSync(join(tmpdir(), "peffle-wal-"));
     const dbPath = join(dir, "ledger.db");
     const policy = approvalPolicy;
-    const a = createRightAuth({ storagePath: dbPath, policy });
-    const b = createRightAuth({ storagePath: dbPath, policy });
+    const a = createPeffle({ storagePath: dbPath, policy });
+    const b = createPeffle({ storagePath: dbPath, policy });
     const req = { agent, action: "send_invoice", amount: 1 };
     let eventId = "";
     try {
@@ -249,7 +249,7 @@ describe("approval redemption", () => {
   });
 
   it("waitForApproval rejects when already consumed", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 1 };
     const creds = await (async () => {
       try {
@@ -268,7 +268,7 @@ describe("approval redemption", () => {
   });
 
   it("approve after kill throws AgentKilledError", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 1 };
     let eventId = "";
     try {
@@ -282,7 +282,7 @@ describe("approval redemption", () => {
   });
 
   it("revoke during redemption reports denied not consumed", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 1 };
     let token = "";
     let eventId = "";
@@ -302,9 +302,9 @@ describe("approval redemption", () => {
   });
 
   it("consumeApproval uses timestamp captured inside immediate transaction", async () => {
-    const { RightAuthStorage } = await import("../../src/core/storage.js");
-    const spy = vi.spyOn(RightAuthStorage.prototype, "consumeApproval");
-    const ra = memoryRightAuth(approvalPolicy);
+    const { PeffleStorage } = await import("../../src/core/storage.js");
+    const spy = vi.spyOn(PeffleStorage.prototype, "consumeApproval");
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 1 };
     let token = "";
     let eventId = "";
@@ -327,7 +327,7 @@ describe("approval redemption", () => {
   });
 
   it("kill voids approved redemption", async () => {
-    const ra = memoryRightAuth(approvalPolicy);
+    const ra = memoryPeffle(approvalPolicy);
     const req = { agent, action: "send_invoice", amount: 1 };
     let token = "";
     let eventId = "";

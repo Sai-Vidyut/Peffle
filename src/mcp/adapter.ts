@@ -1,4 +1,4 @@
-import type { ActionRequest, GuardApproval, RightAuth } from "../core/types.js";
+import type { ActionRequest, GuardApproval, Peffle } from "../core/types.js";
 import {
   ApprovalAlreadyConsumedError,
   ApprovalDeniedError,
@@ -12,7 +12,7 @@ import {
   BudgetExceededError,
   InvalidAmountError,
   PolicyDeniedError,
-  RightAuthError,
+  PeffleError,
   getApprovalRedemption,
 } from "../core/errors.js";
 import { parseMcpNumericField } from "./amount.js";
@@ -23,12 +23,12 @@ import {
   peekMcpRedemptionHandle,
 } from "./redemption-registry.js";
 
-export const RIGHTAUTH_APPROVAL_PROTOCOL = "rightauth/approval-required/v1";
+export const PEFFLE_APPROVAL_PROTOCOL = "peffle/approval-required/v1";
 
 const DEFAULT_APPROVAL_TTL_MS = 15 * 60 * 1000;
 
 export interface McpGuardOptions<Args = unknown> {
-  rightauth: RightAuth;
+  peffle: Peffle;
   agentId: string;
   principal?: string;
   delegationChain?: string[];
@@ -40,7 +40,7 @@ export interface McpGuardOptions<Args = unknown> {
 
 export type McpApprovalRequiredResult = {
   isError: true;
-  rightauthApprovalRequired: true;
+  peffleApprovalRequired: true;
   eventId: string;
   redemptionHandle: string;
   content: { type: "text"; text: string }[];
@@ -67,7 +67,7 @@ function extractApprovalFromArgs<Args>(
 ): { approval?: GuardApproval; handle?: string } {
   if (!args || typeof args !== "object") return {};
   const record = args as Record<string, unknown>;
-  const raw = record.rightauthApproval;
+  const raw = record.peffleApproval;
   if (!raw || typeof raw !== "object") return {};
   const a = raw as Record<string, unknown>;
   if (typeof a.handle === "string") {
@@ -85,7 +85,7 @@ function isTransientRedemptionError(err: unknown): boolean {
 }
 
 function isTerminalRedemptionError(err: unknown): boolean {
-  if (!(err instanceof RightAuthError)) return false;
+  if (!(err instanceof PeffleError)) return false;
   if (isTransientRedemptionError(err)) return false;
   if (err instanceof ApprovalRequiredError) return false;
   if (err instanceof PolicyDeniedError) return false;
@@ -151,7 +151,7 @@ export function guardTool<Args, Result>(
     };
 
     try {
-      const result = await opts.rightauth.guard(
+      const result = await opts.peffle.guard(
         request,
         () => handler(args),
         approval ? { approval } : undefined
@@ -163,21 +163,21 @@ export function guardTool<Args, Result>(
         const { eventId, token } = getApprovalRedemption(err);
         const issuedHandle = issueMcpRedemptionHandle(eventId, token, handleTtlMs);
         const payload = {
-          protocol: RIGHTAUTH_APPROVAL_PROTOCOL,
+          protocol: PEFFLE_APPROVAL_PROTOCOL,
           eventId,
           redemptionHandle: issuedHandle,
-          message: `Approval required. Run: rightauth approve ${eventId}`,
+          message: `Approval required. Run: peffle approve ${eventId}`,
         };
         return {
           isError: true,
-          rightauthApprovalRequired: true,
+          peffleApprovalRequired: true,
           eventId,
           redemptionHandle: issuedHandle,
           content: [{ type: "text", text: JSON.stringify(payload) }],
         };
       }
       finalizeRedemptionHandle(redemptionHandle, err);
-      if (err instanceof RightAuthError) {
+      if (err instanceof PeffleError) {
         return {
           isError: true,
           content: [{ type: "text", text: err.message }],

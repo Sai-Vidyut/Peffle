@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { ApprovalRequiredError, getApprovalRedemption } from "../../src/core/index.js";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 describe("kill switch", () => {
   it("denies killed agent", () => {
-    const ra = memoryRightAuth(testPolicy({ actions: [{ id: "a", match: { action: "*" }, effect: "allow" }] }));
+    const ra = memoryPeffle(testPolicy({ actions: [{ id: "a", match: { action: "*" }, effect: "allow" }] }));
     ra.kill(agent.agentId);
     expect(ra.checkPolicy({ agent, action: "x" }).outcome).toBe("deny");
     ra.close();
   });
 
   it("kill is idempotent", () => {
-    const ra = memoryRightAuth(testPolicy());
+    const ra = memoryPeffle(testPolicy());
     ra.kill(agent.agentId, { reason: "one" });
     ra.kill(agent.agentId, { reason: "two" });
     expect(ra.checkPolicy({ agent, action: "x" }).outcome).toBe("deny");
@@ -19,7 +19,7 @@ describe("kill switch", () => {
   });
 
   it("killed ancestor denies descendant", () => {
-    const ra = memoryRightAuth(testPolicy({ actions: [{ id: "a", match: { action: "*" }, effect: "allow" }] }));
+    const ra = memoryPeffle(testPolicy({ actions: [{ id: "a", match: { action: "*" }, effect: "allow" }] }));
     ra.kill("parent");
     const child = { agentId: "child", delegationChain: ["parent"] };
     expect(ra.checkPolicy({ agent: child, action: "x" }).outcome).toBe("deny");
@@ -27,7 +27,7 @@ describe("kill switch", () => {
   });
 
   it("revive parent does not revive independently killed child", () => {
-    const ra = memoryRightAuth(testPolicy({ actions: [{ id: "a", match: { action: "*" }, effect: "allow" }] }));
+    const ra = memoryPeffle(testPolicy({ actions: [{ id: "a", match: { action: "*" }, effect: "allow" }] }));
     ra.kill("parent");
     ra.kill("child");
     ra.revive("parent");
@@ -36,7 +36,7 @@ describe("kill switch", () => {
   });
 
   it("ancestor kill voids descendant pending approval in ledger", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         actions: [{ id: "inv", match: { action: "send_invoice" }, effect: "require_approval" }],
       })
@@ -55,7 +55,7 @@ describe("kill switch", () => {
   });
 
   it("kill with LIKE metacharacters does not void unrelated delegation matches", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         actions: [{ id: "inv", match: { action: "send_invoice" }, effect: "require_approval" }],
       })
@@ -82,7 +82,7 @@ describe("kill switch", () => {
   });
 
   it("kill voids pending approvals", async () => {
-    const ra = memoryRightAuth(
+    const ra = memoryPeffle(
       testPolicy({
         actions: [{ id: "inv", match: { action: "send_invoice" }, effect: "require_approval" }],
       })

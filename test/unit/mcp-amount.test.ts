@@ -1,16 +1,16 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { guardTool } from "../../src/mcp/adapter.js";
 import { InvalidAmountError } from "../../src/core/index.js";
-import { memoryRightAuth, testPolicy, agent } from "../helpers.js";
+import { memoryPeffle, testPolicy, agent } from "../helpers.js";
 
 describe("MCP amount parsing", () => {
-  const ra = memoryRightAuth(
+  const ra = memoryPeffle(
     testPolicy({
       budgets: [{ id: "b", scope: "global", window: "total", limit: 1000 }],
       actions: [{ id: "a", match: { action: "pay" }, effect: "allow" }],
     })
   );
-  const wrapped = guardTool(vi.fn(() => "ok"), "pay", { rightauth: ra, agentId: agent.agentId });
+  const wrapped = guardTool(vi.fn(() => "ok"), "pay", { peffle: ra, agentId: agent.agentId });
 
   afterAll(() => ra.close());
 

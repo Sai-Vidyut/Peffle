@@ -6,10 +6,10 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {
   ApprovalRequiredError,
-  createRightAuth,
+  createPeffle,
   getApprovalRedemption,
 } from "../../src/core/index.js";
-import { RightAuthStorage } from "../../src/core/storage.js";
+import { PeffleStorage } from "../../src/core/storage.js";
 import type { PolicyConfig } from "../../src/core/types.js";
 
 const policy: PolicyConfig = {
@@ -49,7 +49,7 @@ function runRedeemChild(
 
 describe("cross-process approval redemption", () => {
   it("only one process redeems the same eventId+token", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "rightauth-appr-xproc-"));
+    const dir = mkdtempSync(join(tmpdir(), "peffle-appr-xproc-"));
     const dbPath = join(dir, "ledger.db");
     const policyPath = join(dir, "policy.json");
     writeFileSync(policyPath, JSON.stringify(policy));
@@ -58,7 +58,7 @@ describe("cross-process approval redemption", () => {
       "approval-redeem-race-child.ts"
     );
 
-    const parent = createRightAuth({ storagePath: dbPath, policy });
+    const parent = createPeffle({ storagePath: dbPath, policy });
     const agent = { agentId: "race-agent" };
     let eventId = "";
     let token = "";
@@ -85,7 +85,7 @@ describe("cross-process approval redemption", () => {
     const handlerRuns = [ra.out, rb.out].filter((o) => o.includes("HANDLER")).length;
     expect(handlerRuns).toBeLessThanOrEqual(1);
 
-    const storage = new RightAuthStorage(dbPath);
+    const storage = new PeffleStorage(dbPath);
     const approval = storage.getApproval(eventId);
     storage.close();
     expect(approval?.status).toBe("consumed");

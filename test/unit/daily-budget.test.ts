@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { createRightAuth } from "../../src/core/index.js";
-import { RightAuthStorage } from "../../src/core/storage.js";
+import { createPeffle } from "../../src/core/index.js";
+import { PeffleStorage } from "../../src/core/storage.js";
 import { evaluateBudgets } from "../../src/core/policy.js";
 import type { PolicyConfig } from "../../src/core/types.js";
 
@@ -16,9 +16,9 @@ const policy: PolicyConfig = {
 
 describe("daily budget uses executed_at", () => {
   it("counts redemption on execution day not request day", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "rightauth-daily-"));
+    const dir = mkdtempSync(join(tmpdir(), "peffle-daily-"));
     const dbPath = join(dir, "ledger.db");
-    const storage = new RightAuthStorage(dbPath);
+    const storage = new PeffleStorage(dbPath);
     const yesterday = new Date(Date.now() - 86_400_000).toISOString();
     const today = new Date().toISOString();
 

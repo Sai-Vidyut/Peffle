@@ -1,8 +1,8 @@
-export abstract class RightAuthError extends Error {
+export abstract class PeffleError extends Error {
   abstract readonly code: string;
 }
 
-export class ConfigValidationError extends RightAuthError {
+export class ConfigValidationError extends PeffleError {
   readonly code = "CONFIG_INVALID";
   constructor(
     message: string,
@@ -13,7 +13,7 @@ export class ConfigValidationError extends RightAuthError {
   }
 }
 
-export class AgentKilledError extends RightAuthError {
+export class AgentKilledError extends PeffleError {
   readonly code = "AGENT_KILLED";
   constructor(
     readonly agentId: string,
@@ -24,7 +24,7 @@ export class AgentKilledError extends RightAuthError {
   }
 }
 
-export class PolicyDeniedError extends RightAuthError {
+export class PolicyDeniedError extends PeffleError {
   readonly code = "POLICY_DENIED";
   constructor(
     message: string,
@@ -36,7 +36,7 @@ export class PolicyDeniedError extends RightAuthError {
   }
 }
 
-export class BudgetExceededError extends RightAuthError {
+export class BudgetExceededError extends PeffleError {
   readonly code = "BUDGET_EXCEEDED";
   constructor(
     readonly limit: number,
@@ -51,7 +51,7 @@ export class BudgetExceededError extends RightAuthError {
 
 const approvalRedemptionTokens = new WeakMap<ApprovalRequiredError, string>();
 
-export class ApprovalRequiredError extends RightAuthError {
+export class ApprovalRequiredError extends PeffleError {
   readonly code = "APPROVAL_REQUIRED";
   constructor(readonly eventId: string, token: string) {
     super(`Approval required for event ${eventId}`);
@@ -72,7 +72,7 @@ export function getApprovalRedemption(err: ApprovalRequiredError): {
   return { eventId: err.eventId, token };
 }
 
-export class InvalidAmountError extends RightAuthError {
+export class InvalidAmountError extends PeffleError {
   readonly code = "INVALID_AMOUNT";
   constructor(readonly amount: unknown) {
     super("Action amount must be a finite non-negative number");
@@ -80,7 +80,7 @@ export class InvalidAmountError extends RightAuthError {
   }
 }
 
-export class PrincipalRequiredError extends RightAuthError {
+export class PrincipalRequiredError extends PeffleError {
   readonly code = "PRINCIPAL_REQUIRED";
   constructor(readonly budgetRuleId: string) {
     super(`Agent principal is required for budget rule ${budgetRuleId}`);
@@ -88,7 +88,7 @@ export class PrincipalRequiredError extends RightAuthError {
   }
 }
 
-export class ApprovalTimeoutError extends RightAuthError {
+export class ApprovalTimeoutError extends PeffleError {
   readonly code = "APPROVAL_TIMEOUT";
   constructor(readonly eventId: string) {
     super(`Approval timed out for event ${eventId}`);
@@ -96,7 +96,7 @@ export class ApprovalTimeoutError extends RightAuthError {
   }
 }
 
-export class ApprovalDeniedError extends RightAuthError {
+export class ApprovalDeniedError extends PeffleError {
   readonly code = "APPROVAL_DENIED";
   constructor(
     readonly eventId: string,
@@ -107,7 +107,7 @@ export class ApprovalDeniedError extends RightAuthError {
   }
 }
 
-export class ApprovalNotFoundError extends RightAuthError {
+export class ApprovalNotFoundError extends PeffleError {
   readonly code = "APPROVAL_NOT_FOUND";
   constructor(readonly eventId: string) {
     super(`Approval not found for event ${eventId}`);
@@ -115,7 +115,7 @@ export class ApprovalNotFoundError extends RightAuthError {
   }
 }
 
-export class ApprovalNotYetGrantedError extends RightAuthError {
+export class ApprovalNotYetGrantedError extends PeffleError {
   readonly code = "APPROVAL_NOT_YET_GRANTED";
   constructor(readonly eventId: string) {
     super(`Approval not yet granted for event ${eventId}`);
@@ -123,7 +123,7 @@ export class ApprovalNotYetGrantedError extends RightAuthError {
   }
 }
 
-export class ApprovalAlreadyResolvedError extends RightAuthError {
+export class ApprovalAlreadyResolvedError extends PeffleError {
   readonly code = "APPROVAL_ALREADY_RESOLVED";
   constructor(readonly eventId: string) {
     super(`Approval already resolved for event ${eventId}`);
@@ -131,7 +131,7 @@ export class ApprovalAlreadyResolvedError extends RightAuthError {
   }
 }
 
-export class ApprovalAlreadyConsumedError extends RightAuthError {
+export class ApprovalAlreadyConsumedError extends PeffleError {
   readonly code = "APPROVAL_ALREADY_CONSUMED";
   constructor(readonly eventId: string) {
     super(`Approval already consumed for event ${eventId}`);
@@ -139,7 +139,7 @@ export class ApprovalAlreadyConsumedError extends RightAuthError {
   }
 }
 
-export class ApprovalExpiredError extends RightAuthError {
+export class ApprovalExpiredError extends PeffleError {
   readonly code = "APPROVAL_EXPIRED";
   constructor(
     readonly eventId: string,
@@ -150,7 +150,7 @@ export class ApprovalExpiredError extends RightAuthError {
   }
 }
 
-export class ApprovalFingerprintMismatchError extends RightAuthError {
+export class ApprovalFingerprintMismatchError extends PeffleError {
   readonly code = "APPROVAL_FINGERPRINT_MISMATCH";
   constructor(readonly eventId: string) {
     super(`Request fingerprint does not match approved action for event ${eventId}`);
@@ -158,7 +158,7 @@ export class ApprovalFingerprintMismatchError extends RightAuthError {
   }
 }
 
-export class ApprovalTokenInvalidError extends RightAuthError {
+export class ApprovalTokenInvalidError extends PeffleError {
   readonly code = "APPROVAL_TOKEN_INVALID";
   constructor(readonly eventId: string) {
     super(`Invalid approval token for event ${eventId}`);
@@ -166,7 +166,7 @@ export class ApprovalTokenInvalidError extends RightAuthError {
   }
 }
 
-export class StorageError extends RightAuthError {
+export class StorageError extends PeffleError {
   readonly code = "STORAGE_ERROR";
   constructor(message: string, readonly cause?: unknown) {
     super(message);
