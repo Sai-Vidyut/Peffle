@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "defaults": { "onNoMatchingRule": "deny" },
+  "budgets": [
+    {
+      "id": "email-daily",
+      "scope": "global",
+      "window": "daily",
+      "limit": 10,
+      "match": { "action": "send_email" }
+    }
+  ],
+  "actions": [
+    { "id": "allow-email", "match": { "action": "send_email" }, "effect": "allow" },
+    {
+      "id": "invoice-approval",
+      "match": { "action": "send_invoice" },
+      "effect": "require_approval",
+      "reason": "Invoices require human approval."
+    }
+  ]
+}
