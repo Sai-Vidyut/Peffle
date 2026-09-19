@@ -5,12 +5,14 @@
 A local kill switch, spend cap, and human-approval gate for tool calls.
 No SaaS. No telemetry. One `npm install`.
 
+Peffle runs inside your agent process. There is no external service required for enforcement.
+
 [![npm](https://img.shields.io/npm/v/peffle)](https://www.npmjs.com/package/peffle)
 [![license](https://img.shields.io/npm/l/peffle)](./LICENSE)
 
 Repository: [github.com/Sai-Vidyut/Peffle](https://github.com/Sai-Vidyut/Peffle) · Requires **Node.js 18+** (uses a native SQLite binding via `better-sqlite3`).
 
-Prompt instructions are not enforcement. Agents have already [sent $12,431 in fake invoices](https://www.samcodeman.com/writing/ai-agents-real-businesses-fake-invoices) and [run up ~$50,000 in API bills](https://www.helpnetsecurity.com/2026/09/16/google-mandiant-enterprise-ai-security-risks-report/) after routing around caps.
+Prompt instructions are not enforcement. If an agent can call a tool, the tool call needs a real execution-time boundary.
 
 ## Try it (from npm)
 
@@ -82,7 +84,7 @@ await peffle.guard(
   () => sendEmail()
 );
 
-peffle.kill("my-agent"); // instant local kill switch
+peffle.kill("my-agent"); // block subsequent guarded calls
 ```
 
 ## MCP
@@ -102,7 +104,7 @@ const sendEmail = guardTool(
 );
 ```
 
-Approval handles are process-local. Details: [MCP integration](https://github.com/Sai-Vidyut/Peffle/blob/main/docs/mcp-integration.md).
+Approval handles are process-local. Peffle guards MCP tool handlers; it does not authenticate MCP clients. Details: [docs/mcp-integration.md](https://github.com/Sai-Vidyut/Peffle/blob/main/docs/mcp-integration.md).
 
 ## CLI
 
@@ -118,6 +120,8 @@ npx peffle ledger --json
 Run `npx peffle --help` for `revoke`, `revive`, `status`, and storage/policy flags.
 
 When policy says `require_approval`, `guard()` throws `ApprovalRequiredError` with a one-time `{ eventId, token }`. Approve via CLI (or `peffle.approve(eventId)`), then retry `guard()` with `{ approval: { eventId, token } }`. The token is never stored in the ledger.
+
+The operator approves the event with `npx peffle approve <eventId>`, then the agent retries the same request with the redemption token.
 
 ## Examples (repository)
 
