@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.1 — 2026-09-19
+
+### Changed
+
+- README and npm metadata lead with the spend-cap value proposition and a copy-pasteable blocked-spend example.
+
+### Added
+
+- `examples/blocked-spend.ts` (`npm run example`) — agent charges $8, then $5, daily $10 cap blocks it.
+- `npm run pulse` — npm downloads + GitHub stars/forks/issues.
+
 ## 0.1.0 — 2026-03-21
 
 ### Added

@@ -1,8 +1,28 @@
 {
   "name": "peffle",
-  "version": "0.1.0",
-  "description": "Local-first kill switch, policy enforcement, and audit ledger for AI agent tool calls",
+  "version": "0.1.1",
+  "description": "Stop an AI agent before it spends your money — local kill switch, spend caps, and approval gates for tool calls",
   "license": "Apache-2.0",
+  "author": "Sai Vidyut",
+  "homepage": "https://github.com/Sai-Vidyut/Peffle#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sai-Vidyut/Peffle.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sai-Vidyut/Peffle/issues"
+  },
+  "keywords": [
+    "ai-agent",
+    "mcp",
+    "llm",
+    "kill-switch",
+    "budget",
+    "policy",
+    "approval",
+    "guardrails",
+    "audit"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -26,7 +46,9 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
-    "demo": "tsx examples/mcp-email-agent/client.ts"
+    "example": "tsx examples/blocked-spend.ts",
+    "demo": "tsx examples/mcp-email-agent/client.ts",
+    "pulse": "node scripts/pulse.mjs"
   },
   "peerDependencies": {
     "@modelcontextprotocol/sdk": ">=1.0.0"

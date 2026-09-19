@@ -1,6 +1,8 @@
 # MCP email agent demo
 
-Scripted agent that exercises Peffle budgets, approval, and kill switch.
+Longer scripted agent: budgets, approval, then kill switch.
+
+For the 30-second version (agent tries to spend, Peffle blocks it), see [`../blocked-spend.ts`](../blocked-spend.ts).
 
 ```bash
 npm install

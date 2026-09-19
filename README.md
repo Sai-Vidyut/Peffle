@@ -1,83 +1,87 @@
 # Peffle
 
-Stop your AI agent before it drains your budget or spams your customers — a **local, free** kill switch, approval flow, and audit ledger for agent tool calls.
+**Stop an AI agent before it spends your money.**
 
-Real incidents that motivated this:
+A local kill switch, spend cap, and human-approval gate for tool calls.
+No SaaS. No telemetry. One `npm install`.
 
-- [Bottleneck Labs agents sent $12,431 in fake invoices](https://www.samcodeman.com/writing/ai-agents-real-businesses-fake-invoices) after routing around email caps.
-- [A runaway agent racked up ~$50,000 in cloud API charges](https://www.helpnetsecurity.com/2026/09/16/google-mandiant-enterprise-ai-security-risks-report/) in under an hour.
+[![npm](https://img.shields.io/npm/v/peffle)](https://www.npmjs.com/package/peffle)
+[![license](https://img.shields.io/npm/l/peffle)](./LICENSE)
 
-## Install
+Prompt instructions are not enforcement. Agents have already [sent $12,431 in fake invoices](https://www.samcodeman.com/writing/ai-agents-real-businesses-fake-invoices) and [run up ~$50,000 in API bills](https://www.helpnetsecurity.com/2026/09/16/google-mandiant-enterprise-ai-security-risks-report/) after routing around caps.
+
+## Try it
 
 ```bash
 npm install peffle
 ```
 
-## Quick start
+```ts
+import { BudgetExceededError, createPeffle } from "peffle";
 
-```typescript
-import { createPeffle } from "peffle";
-
-const ra = createPeffle({
+const peffle = createPeffle({
+  storagePath: ":memory:",
   policy: {
     version: 1,
     defaults: { onNoMatchingRule: "deny" },
-    budgets: [{ id: "daily", scope: "global", window: "daily", limit: 50 }],
-    actions: [
-      { id: "invoices", match: { action: "send_invoice" }, effect: "require_approval" },
-      { id: "reads", match: { action: "read_*" }, effect: "allow" },
-    ],
+    budgets: [{ id: "daily", scope: "global", window: "daily", limit: 10 }],
+    actions: [{ id: "spend", match: { action: "charge_card" }, effect: "allow" }],
   },
 });
 
-await ra.guard(
-  { agent: { agentId: "my-agent" }, action: "read_docs" },
-  async () => fetchDocs()
-);
+async function charge(dollars: number) {
+  await peffle.guard(
+    { agent: { agentId: "shopper" }, action: "charge_card", amount: dollars },
+    () => console.log(`CHARGED $${dollars}`)
+  );
+}
 
-ra.kill("my-agent"); // instant local kill switch
+await charge(8); // ok — $8 of $10
+try {
+  await charge(5); // would be $13
+} catch (e) {
+  if (e instanceof BudgetExceededError) console.log("BLOCKED", e.message);
+}
+
+peffle.close();
 ```
 
-### MCP tool wrapper
+```
+CHARGED $8
+BLOCKED Budget exceeded: spent 13 would exceed limit 10
+```
 
-```typescript
+Same script in this repo: `npm run example`
+
+## Wrap a tool call
+
+```ts
+await peffle.guard(
+  { agent: { agentId: "my-agent" }, action: "send_email", amount: 1 },
+  () => sendEmail()
+);
+
+peffle.kill("my-agent"); // instant local kill switch
+```
+
+Side effects go **inside** `guard()`. `checkPolicy()` is a preview only — it does not reserve budget or authorize work.
+
+## MCP
+
+```ts
 import { createPeffle } from "peffle";
 import { guardTool } from "peffle/mcp";
 
-const ra = createPeffle({ policyPath: "./peffle.policy.json" });
+const peffle = createPeffle({ policyPath: "./peffle.policy.json" });
 
 const sendEmail = guardTool(
   async (args: { to: string }) => ({ ok: true, to: args.to }),
   "send_email",
-  { peffle: ra, agentId: "server-agent" }
+  { peffle, agentId: "server-agent" }
 );
 ```
 
-When approval is required, the tool response includes a **process-local** `redemptionHandle`. Retry with `{ peffleApproval: { handle } }` on the **same MCP server process**, or pass `{ eventId, token }` when the client holds the token (multi-worker setups). Handles expire after the configured TTL; restarting the server invalidates outstanding handles. Details: [docs/mcp-integration.md](./docs/mcp-integration.md).
-
-### Approval flow
-
-When policy returns `require_approval`, `guard()` throws `ApprovalRequiredError` with a **one-time** `{ eventId, token }`. Approve by event ID (CLI or `ra.approve(eventId)`), then redeem:
-
-```typescript
-await ra.guard(request, fn, { approval: { eventId, token } });
-```
-
-The token is never stored in the ledger or returned from `approve()`.
-
-### `checkPolicy()` is advisory only
-
-`checkPolicy()` previews policy and budget math for UI or diagnostics. It does **not** reserve budget, write ledger events, enforce the kill switch at execution time, or authorize side effects. **Always execute real work through `guard()`.**
-
-```typescript
-// Correct: side effects only inside guard()
-await ra.guard(request, () => doWork());
-
-// Wrong: checkPolicy "allow" is not permission to act
-if (ra.checkPolicy(request).outcome === "allow") await doWork();
-```
-
-See [docs/mcp-integration.md](./docs/mcp-integration.md) for MCP redemption handles (process-local, TTL, retries).
+Approval handles are process-local. Details: [docs/mcp-integration.md](./docs/mcp-integration.md).
 
 ## CLI
 
@@ -89,17 +93,22 @@ npx peffle kill <agentId>
 npx peffle ledger --json
 ```
 
-## Example
+When policy says `require_approval`, `guard()` throws `ApprovalRequiredError` with a one-time `{ eventId, token }`. Approve via CLI (or `peffle.approve(eventId)`), then retry `guard()` with `{ approval: { eventId, token } }`. The token is never stored in the ledger.
 
-See [examples/mcp-email-agent](./examples/mcp-email-agent).
+## Examples
+
+- [examples/blocked-spend.ts](./examples/blocked-spend.ts) — agent tries to overspend, Peffle blocks it
+- [examples/mcp-email-agent](./examples/mcp-email-agent) — budget + approval + kill switch
 
 ## What this is NOT
 
-- Not a hosted service (v1 is local-first SQLite only)
-- Not cryptographic identity / OAuth / MCP auth replacement
-- Not a payments rail or enterprise IAM product
+- Not a hosted service (v0.1 is local SQLite)
+- Not OAuth / MCP auth / cryptographic identity
+- Not a payments rail or enterprise IAM
 - No telemetry or network calls in the core library
 
 ## License
 
 Apache-2.0
+
+If this is useful, star the repo or open an issue: “does this work with X?” That’s how we decide what to build next.
