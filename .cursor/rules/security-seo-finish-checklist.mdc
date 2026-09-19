@@ -1,0 +1,30 @@
+---
+description: Pre-finish security/SEO checklist and report format for substantial changes
+alwaysApply: true
+---
+
+# Finish Checklist & Security Report
+
+Before declaring relevant work complete, review **changed** code.
+
+## Security (as applicable)
+
+Secrets · auth · authz · rate limits · input validation · injection · XSS · CSRF · IDOR · mass assignment · path traversal · SSRF · command injection · uploads · sensitive logging · error leakage · CORS · headers · session/token safety · dependency vulns
+
+## SEO / UX (public pages)
+
+Title · meta description · canonical · index/noindex · H1/hierarchy · URL slug · internal links · alt text · images · responsive · CWV · OG/`og:image` · structured data · HTTPS · sitemap · robots.txt · production URLs
+
+## Implementation order
+
+1. Understand architecture → 2. Security/SEO implications → 3. Smallest maintainable change → 4. Server-side validation → 5. Server-side authz → 6. Rate-limit abuse paths → 7. No secrets in code/client → 8. Preserve behavior → 9. A11y/mobile/SEO/perf → 10. Checklist → 11. Report remaining risks
+
+## Substantial security changes — brief report
+
+1. **Risk addressed** — attack surface
+2. **Changes made** — controls added
+3. **Remaining risks** — assumptions/limits
+4. **Secrets discovered** — if yes, say rotate/revoke (not only move to env)
+5. **Infrastructure** — HTTPS, WAF, Redis, secret manager, Search Console, CDN, DB perms, etc.
+
+**Non-negotiable:** Secure, SEO-friendly, accessible, and responsive by default — without unnecessary architecture churn.

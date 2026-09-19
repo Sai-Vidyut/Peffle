@@ -1,0 +1,32 @@
+---
+description: SEO, accessibility, mobile, and Core Web Vitals defaults for public pages
+alwaysApply: true
+---
+
+# SEO, Accessibility & Performance
+
+Apply when creating or changing public pages, routes, metadata, or UI. Skip pure library/CLI-only changes that have no user-facing web surface — but apply fully to docs sites, landing pages, and apps.
+
+## Technical SEO
+
+- Every indexable page: unique `<title>`, useful meta description, HTTPS canonical, correct robots/noindex.
+- Do not leave placeholder titles (`Create Next App`, etc.) or accidental `noindex` on public pages.
+- Clean readable URL slugs; preserve indexed URLs with redirects when restructuring.
+- Meaningful internal links with descriptive anchors; fix broken links when found.
+- Maintain `/sitemap.xml` (canonical HTTPS public URLs only) and `/robots.txt` (do not block critical public assets; sitemap referenced).
+- Open Graph (+ Twitter where useful): `og:title`, `og:description`, `og:type`, `og:url`, working `og:image`.
+- One primary `<h1>` per page; logical `h2`/`h3` hierarchy — not for styling alone.
+- Add accurate Schema.org JSON-LD only when it matches real visible content.
+- Production metadata must use HTTPS production domains — never localhost/dev URLs.
+
+## Images & performance
+
+- Meaningful `alt` text (empty `alt=""` only for decorative).
+- Modern formats, sized/responsive images; lazy-load below-fold; avoid unnecessary heavy deps.
+- Optimize for LCP, INP, CLS; watch TTFB, JS/CSS weight, fonts, third-party scripts.
+
+## Accessibility & mobile
+
+- Semantic HTML, keyboard nav, visible focus, labeled forms, sufficient contrast, usable touch targets.
+- Prefer real semantics over ARIA; respect `prefers-reduced-motion` where appropriate.
+- Layouts must work on mobile, tablet, and desktop (no overflow, broken nav, untappable controls).

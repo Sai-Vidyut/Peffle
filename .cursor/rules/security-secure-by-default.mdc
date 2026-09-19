@@ -1,0 +1,46 @@
+---
+description: Secure-by-default engineering for auth, APIs, data, uploads, and secrets
+alwaysApply: true
+---
+
+# Security — Secure by Default
+
+Assume every request, user, client, input, file, token, cookie, DB record, and external service is untrusted. Enforce security **server-side**, never only in the frontend.
+
+## Auth & authorization
+
+- Use established auth/session libraries; hash passwords with Argon2id/bcrypt (or framework equivalent).
+- Prefer MFA for sensitive accounts/operations.
+- Authorize on **every** protected endpoint; verify the caller may act on that resource (prevent IDOR/BOLA).
+- Never rely on hidden routes, disabled buttons, or client checks for security.
+- Protect login/signup/reset/OTP/refresh against abuse and enumeration.
+
+## Secrets
+
+- Never hardcode API keys, passwords, tokens, JWT secrets, private keys, DB creds, or OAuth secrets.
+- Use env/secret managers; keep `.env` out of Git; never ship secrets to the client.
+- Never log passwords, tokens, session IDs, private keys, or sensitive PII.
+- If a secret is found in code/history: identify it, recommend **rotate/revoke**, remove it — do not only move it to `.env`.
+
+## Input & APIs
+
+- Validate all external input server-side (body, query, path, headers, cookies, files): type, format, length, range, allowlists.
+- Prevent injection (SQL/NoSQL/XSS/command/path/SSRF), unsafe deserialization, prototype pollution.
+- Use parameterized queries / safe ORMs; never shell with untrusted input.
+- Protected endpoints: auth → authz → validation → rate limit (where needed) → safe errors.
+- Do not expose hashes, tokens, stack traces, internal paths, raw DB errors, or extra fields.
+- Explicit CORS; never `Access-Control-Allow-Origin: *` with credentials. Prefer HTTPS in production.
+
+## Rate limiting
+
+Rate-limit login, signup, reset, OTP, refresh, uploads, search, expensive/sensitive APIs. Return `429`. Prefer shared store (e.g. Redis) when distributed.
+
+## Sessions / tokens / uploads / browser
+
+- No plaintext passwords; no auth tokens in URLs; short-lived scoped tokens; HttpOnly/Secure/SameSite cookies when used.
+- Uploads: size/ext/MIME/content allowlists, safe server filenames, no path traversal, store outside executable dirs, rate-limit.
+- Prevent CSRF on state-changing auth flows; encode output; avoid unsafe HTML injection; configure CSP and related headers only when they fit the architecture.
+
+## Dependencies & changes
+
+Prefer maintained packages and framework-native features. Understand existing architecture before changing auth, sessions, middleware, APIs, or DB logic. Smallest maintainable secure change — do not break legitimate behavior.
