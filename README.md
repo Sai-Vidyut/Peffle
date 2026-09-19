@@ -8,15 +8,19 @@ No SaaS. No telemetry. One `npm install`.
 [![npm](https://img.shields.io/npm/v/peffle)](https://www.npmjs.com/package/peffle)
 [![license](https://img.shields.io/npm/l/peffle)](./LICENSE)
 
+Repository: [github.com/Sai-Vidyut/Peffle](https://github.com/Sai-Vidyut/Peffle) · Requires **Node.js 18+** (uses a native SQLite binding via `better-sqlite3`).
+
 Prompt instructions are not enforcement. Agents have already [sent $12,431 in fake invoices](https://www.samcodeman.com/writing/ai-agents-real-businesses-fake-invoices) and [run up ~$50,000 in API bills](https://www.helpnetsecurity.com/2026/09/16/google-mandiant-enterprise-ai-security-risks-report/) after routing around caps.
 
-## Try it
+## Try it (from npm)
 
 ```bash
 npm install peffle
 ```
 
-```ts
+Save as `spend-cap.mjs` and run with `node spend-cap.mjs`:
+
+```js
 import { BudgetExceededError, createPeffle } from "peffle";
 
 const peffle = createPeffle({
@@ -29,29 +33,46 @@ const peffle = createPeffle({
   },
 });
 
-async function charge(dollars: number) {
+async function charge(dollars) {
   await peffle.guard(
     { agent: { agentId: "shopper" }, action: "charge_card", amount: dollars },
     () => console.log(`CHARGED $${dollars}`)
   );
 }
 
-await charge(8); // ok — $8 of $10
-try {
-  await charge(5); // would be $13
-} catch (e) {
-  if (e instanceof BudgetExceededError) console.log("BLOCKED", e.message);
+async function main() {
+  await charge(8);
+  try {
+    await charge(5);
+  } catch (e) {
+    if (e instanceof BudgetExceededError) console.log("BLOCKED", e.message);
+  } finally {
+    peffle.close();
+  }
 }
 
-peffle.close();
+main();
 ```
+
+Expected output:
 
 ```
 CHARGED $8
 BLOCKED Budget exceeded: spent 13 would exceed limit 10
 ```
 
-Same script in this repo: `npm run example`
+**From a git clone** (examples and docs live in the repo, not in the npm tarball):
+
+```bash
+git clone https://github.com/Sai-Vidyut/Peffle.git && cd Peffle
+npm install && npm run example
+```
+
+## Enforcement rule
+
+**Every side effect** (spend, send, write, call a paid API) must run **inside** `peffle.guard(request, () => …)`.
+
+`checkPolicy()` is a preview only — it does not reserve budget, enforce the kill switch at execution time, or authorize work.
 
 ## Wrap a tool call
 
@@ -64,9 +85,9 @@ await peffle.guard(
 peffle.kill("my-agent"); // instant local kill switch
 ```
 
-Side effects go **inside** `guard()`. `checkPolicy()` is a preview only — it does not reserve budget or authorize work.
-
 ## MCP
+
+Peffle can **wrap MCP tool handlers** with the same enforcement as `guard()`. It does **not** authenticate MCP clients or replace server OAuth.
 
 ```ts
 import { createPeffle } from "peffle";
@@ -81,7 +102,7 @@ const sendEmail = guardTool(
 );
 ```
 
-Approval handles are process-local. Details: [docs/mcp-integration.md](./docs/mcp-integration.md).
+Approval handles are process-local. Details: [MCP integration](https://github.com/Sai-Vidyut/Peffle/blob/main/docs/mcp-integration.md).
 
 ## CLI
 
@@ -89,16 +110,21 @@ Approval handles are process-local. Details: [docs/mcp-integration.md](./docs/mc
 npx peffle init
 npx peffle pending
 npx peffle approve <eventId>
+npx peffle deny <eventId>
 npx peffle kill <agentId>
 npx peffle ledger --json
 ```
 
+Run `npx peffle --help` for `revoke`, `revive`, `status`, and storage/policy flags.
+
 When policy says `require_approval`, `guard()` throws `ApprovalRequiredError` with a one-time `{ eventId, token }`. Approve via CLI (or `peffle.approve(eventId)`), then retry `guard()` with `{ approval: { eventId, token } }`. The token is never stored in the ledger.
 
-## Examples
+## Examples (repository)
 
-- [examples/blocked-spend.ts](./examples/blocked-spend.ts) — agent tries to overspend, Peffle blocks it
-- [examples/mcp-email-agent](./examples/mcp-email-agent) — budget + approval + kill switch
+- [blocked-spend.ts](https://github.com/Sai-Vidyut/Peffle/blob/main/examples/blocked-spend.ts) — agent tries to overspend, Peffle blocks it
+- [mcp-email-agent](https://github.com/Sai-Vidyut/Peffle/tree/main/examples/mcp-email-agent) — budget + approval + kill switch
+
+Policy schema: [docs/policy-schema.md](https://github.com/Sai-Vidyut/Peffle/blob/main/docs/policy-schema.md).
 
 ## What this is NOT
 
@@ -106,6 +132,8 @@ When policy says `require_approval`, `guard()` throws `ApprovalRequiredError` wi
 - Not OAuth / MCP auth / cryptographic identity
 - Not a payments rail or enterprise IAM
 - No telemetry or network calls in the core library
+
+**Trust boundaries:** `agentId` and `principal` are asserted by your app (not cryptographically verified). Any code path that skips `guard()` bypasses Peffle. MCP approval handles are process-local and do not survive a server restart.
 
 ## License
 
