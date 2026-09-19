@@ -59,34 +59,37 @@ export async function runGuard<T>(
   return firstAttempt(ctx, normalized, fn);
 }
 
+type FirstAttemptTx =
+  | { kind: "deny"; decision: Extract<PolicyDecision, { outcome: "deny" }> }
+  | { kind: "approval"; token: string }
+  | { kind: "proceed" };
+
 async function firstAttempt<T>(
   ctx: GuardContext,
   request: ActionRequest,
   fn: () => Promise<T> | T
 ): Promise<T> {
   const eventId = newEventId();
-  let denyDecision: Extract<PolicyDecision, { outcome: "deny" }> | null = null;
-  let approvalToken: string | null = null;
-  let proceed = false;
 
-  ctx.storage.transactionImmediate(() => {
+  const tx = ctx.storage.transactionImmediate((): FirstAttemptTx => {
     const killed = isAgentEffectivelyKilled(ctx.storage, request.agent);
     if (killed.killed) {
-      denyDecision = {
-        outcome: "deny",
-        reason: "agent_killed",
-        rule: "kill-switch",
-      };
       ctx.storage.insertEvent(eventId, request, "denied", "kill-switch");
-      return;
+      return {
+        kind: "deny",
+        decision: {
+          outcome: "deny",
+          reason: "agent_killed",
+          rule: "kill-switch",
+        },
+      };
     }
 
     const decision = checkPolicy(ctx.storage, ctx.policy, request);
 
     if (decision.outcome === "deny") {
       ctx.storage.insertEvent(eventId, request, "denied", decision.rule);
-      denyDecision = decision;
-      return;
+      return { kind: "deny", decision };
     }
 
     if (decision.outcome === "require_approval") {
@@ -95,30 +98,29 @@ async function firstAttempt<T>(
       const tokenHash = sha256Hex(token);
       ctx.storage.insertEvent(eventId, request, "pending", decision.ruleId);
       ctx.storage.insertApproval(eventId, fingerprint, tokenHash);
-      approvalToken = token;
-      return;
+      return { kind: "approval", token };
     }
 
     ctx.storage.insertEvent(eventId, request, "in_progress");
-    proceed = true;
+    return { kind: "proceed" };
   });
 
-  if (denyDecision) {
-    if (denyDecision.reason === "agent_killed") {
+  if (tx.kind === "deny") {
+    if (tx.decision.reason === "agent_killed") {
       throw new AgentKilledError(request.agent.agentId);
     }
-    throwForDeny(denyDecision, eventId);
+    throwForDeny(tx.decision, eventId);
   }
 
-  if (approvalToken) {
+  if (tx.kind === "approval") {
     const event = ctx.storage.getEvent(eventId);
     if (event && ctx.config.onApprovalRequired) {
       ctx.config.onApprovalRequired(event);
     }
-    throw new ApprovalRequiredError(eventId, approvalToken);
+    throw new ApprovalRequiredError(eventId, tx.token);
   }
 
-  if (!proceed) {
+  if (tx.kind !== "proceed") {
     throw new PolicyDeniedError("Unexpected guard state", eventId);
   }
 

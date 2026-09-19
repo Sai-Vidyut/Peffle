@@ -61,7 +61,10 @@ server.registerTool(
   },
   async ({ amount, peffleApproval }) => {
     const run = guardTool(
-      async (a: { amount: number }) => ({ ok: true, amount: a.amount }),
+      async (a: { amount: number; peffleApproval?: typeof peffleApproval }) => ({
+        ok: true,
+        amount: a.amount,
+      }),
       "send_invoice",
       guardOpts
     );
