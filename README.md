@@ -116,6 +116,7 @@ Approval handles are process-local. Peffle guards MCP tool handlers; it does not
 
 ```bash
 npx peffle init
+npx peffle chat
 npx peffle pending
 npx peffle approve <eventId>
 npx peffle deny <eventId>
@@ -125,9 +126,32 @@ npx peffle ledger --json
 
 Run `npx peffle --help` for `revoke`, `revive`, `status`, and storage/policy flags.
 
-When policy says `require_approval`, `guard()` throws `ApprovalRequiredError` with a one-time `{ eventId, token }`. Approve via CLI (or `peffle.approve(eventId)`), then retry `guard()` with `{ approval: { eventId, token } }`. The token is never stored in the ledger.
+`npx peffle chat` is an interactive operator console (policies, approvals, natural language when AI is configured). Use `npx` from any project directory; Peffle does not require API keys in each app’s `.env`.
 
-The operator approves the event with `npx peffle approve <eventId>`, then the agent retries the same request with the redemption token.
+### AI providers (chat)
+
+Configure Gemini and/or Groq **once** for the CLI. Keys belong to Peffle, not your application repo.
+
+```bash
+mkdir -p ~/.config/peffle
+cp .env.example ~/.config/peffle/.env   # from a git clone, or create the file by hand
+# Edit ~/.config/peffle/.env — set PEFFLE_AI_PROVIDER and API keys (never commit this file)
+npx peffle chat
+```
+
+| Variable | Values | Notes |
+|----------|--------|--------|
+| `PEFFLE_AI_PROVIDER` | `auto`, `gemini`, `groq`, `none` | `auto` tries Gemini, then Groq |
+| `GEMINI_API_KEY` | — | Required for `gemini` / first leg of `auto` |
+| `GROQ_API_KEY` | — | Required for `groq` / fallback in `auto` |
+
+Optional: `PEFFLE_AI_MODEL`, `PEFFLE_GROQ_MODEL`. Override config directory with `PEFFLE_CONFIG_DIR` (advanced).
+
+**Precedence** (highest wins): shell environment → project `.env.local` → project `.env` → `~/.config/peffle/.env` (or `$XDG_CONFIG_HOME/peffle/.env`). Project files are optional overrides; user config is enough to run chat from any working directory.
+
+Without keys, chat still works via slash commands (`/help`, `/policy`, approvals, kill switch). Set `PEFFLE_AI_PROVIDER=none` to disable AI explicitly.
+
+When policy says `require_approval`, `guard()` throws `ApprovalRequiredError` with a one-time `{ eventId, token }`. Approve via CLI (or `peffle.approve(eventId)`), then retry `guard()` with `{ approval: { eventId, token } }`. The token is never stored in the ledger.
 
 ## Examples (repository)
 
