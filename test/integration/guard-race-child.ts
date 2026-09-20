@@ -1,4 +1,4 @@
-import { createPeffle, loadPolicyFromJson } from "../../dist/core/index.js";
+import { createPeffle, loadPolicyFromJson } from "../../src/core/index.js";
 import { readFileSync } from "node:fs";
 
 const dbPath = process.argv.at(-3);
