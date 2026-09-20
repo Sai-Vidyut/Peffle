@@ -1,9 +1,12 @@
 #!/usr/bin/env node
+import { loadPeffleEnvFiles } from "./load-env.js";
 import { Command } from "commander";
 import { writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { createPeffle, DEFAULT_POLICY_EXAMPLE } from "../core/index.js";
 import { readPackageVersion } from "../chat/session.js";
+
+loadPeffleEnvFiles();
 
 function openPeffle(storage?: string, policy?: string) {
   return createPeffle({
