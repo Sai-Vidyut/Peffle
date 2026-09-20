@@ -46,6 +46,8 @@
   ],
   "scripts": {
     "build": "tsup",
+    "verify:dist": "node scripts/verify-dist.mjs",
+    "prepublishOnly": "npm run build && npm run verify:dist",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
