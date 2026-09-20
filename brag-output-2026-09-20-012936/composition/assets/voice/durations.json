@@ -1,0 +1,14 @@
+{
+  "voice": "en-US-AvaMultilingualNeural",
+  "rate": "+2%",
+  "pitch": "+0Hz",
+  "mode": "single_take_sentence_split",
+  "vo-1": 6.16,
+  "vo-2": 2.693,
+  "vo-3": 2.925,
+  "vo-4": 3.44,
+  "vo-5": 2.043,
+  "vo-6": 2.84,
+  "vo-7": 3.881,
+  "vo-8": 3.814
+}

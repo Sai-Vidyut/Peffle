@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Peffle</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #041014;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        color: #e8f6f3;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        --bg: #041014;
+        --panel: #07161b;
+        --bar: #0a1c22;
+        --border: #1c5560;
+        --cyan: #5ef0d6;
+        --text: #e8f6f3;
+        --muted: #87b0b0;
+        --ok: #4ade80;
+        --bad: #ff6b6b;
+        --ink: #042a2c;
+        --body: #2b333a;
+        --belly: #f3efe6;
+      }
+      .stage-bg { position: absolute; inset: 0; background: #041014; }
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(94, 240, 214, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(94, 240, 214, 0.035) 1px, transparent 1px);
+        background-size: 48px 48px;
+        pointer-events: none;
+      }
+      .glow {
+        position: absolute;
+        width: 720px;
+        height: 520px;
+        left: 80px;
+        top: 200px;
+        background: radial-gradient(ellipse at center, rgba(94, 240, 214, 0.12), transparent 70%);
+        pointer-events: none;
+      }
+      .clip { position: absolute; inset: 0; }
+      .frame { position: absolute; inset: 0; }
+
+      /* TerminalWindow / CodeEditor / CommandLine */
+      .win {
+        position: absolute;
+        border: 2px solid var(--border);
+        background: var(--panel);
+        overflow: hidden;
+      }
+      .win-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 48px;
+        padding: 0 18px;
+        background: var(--bar);
+        border-bottom: 2px solid var(--border);
+        color: var(--muted);
+        font-size: 20px;
+      }
+      .tl { width: 12px; height: 12px; border-radius: 50%; }
+      .tl-r { background: #ff5f57; }
+      .tl-y { background: #febc2e; }
+      .tl-g { background: #28c840; }
+      .win-body { padding: 28px 32px 32px; }
+      .cmd {
+        font-size: 34px;
+        line-height: 1.45;
+        white-space: pre;
+        color: var(--text);
+      }
+      .caret {
+        display: inline-block;
+        width: 16px;
+        height: 34px;
+        margin-left: 4px;
+        background: var(--cyan);
+        vertical-align: -4px;
+      }
+      .out { font-size: 30px; line-height: 1.5; color: var(--muted); margin-top: 10px; }
+      .ok { color: var(--ok); font-weight: 700; }
+      .bad { color: var(--bad); font-weight: 700; }
+      .check { color: var(--ok); margin-right: 10px; }
+      .hl {
+        color: var(--cyan);
+        font-weight: 700;
+        box-shadow: inset 0 -3px 0 rgba(94, 240, 214, 0.7);
+      }
+      .ed-row { display: flex; gap: 22px; font-size: 28px; line-height: 1.55; white-space: pre; }
+      .ln { width: 36px; color: #4d7373; text-align: right; flex: none; }
+      .tok-key { color: var(--cyan); }
+      .tok-str { color: #8ef0c8; }
+      .tok-fn { color: var(--cyan); font-weight: 700; }
+
+      /* SpeechBubble — sits above mascot; tail points down to penguin */
+      .bubble {
+        position: absolute;
+        z-index: 7;
+        background: var(--cyan);
+        color: var(--ink);
+        border-radius: 18px;
+        padding: 14px 18px;
+        font-size: 22px;
+        line-height: 1.35;
+        max-width: 332px;
+        font-weight: 500;
+        --tail-x: 50%;
+      }
+      .bubble::after {
+        content: "";
+        position: absolute;
+        left: var(--tail-x);
+        bottom: -11px;
+        transform: translateX(-50%);
+        border: 11px solid transparent;
+        border-top-color: var(--cyan);
+      }
+      .bubble-kicker {
+        font-size: 18px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .wordmark {
+        font-size: 84px;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        color: var(--text);
+      }
+      .cursor-block {
+        display: inline-block;
+        width: 22px;
+        height: 72px;
+        margin-left: 10px;
+        background: var(--cyan);
+        vertical-align: -8px;
+      }
+      .sub {
+        margin-top: 14px;
+        font-size: 26px;
+        color: var(--muted);
+        max-width: 720px;
+      }
+
+      /* PolicyCheck */
+      .row-flow { display: flex; align-items: stretch; gap: 28px; }
+      .req, .check-card {
+        border: 2px solid var(--border);
+        background: #08171c;
+        padding: 22px 24px;
+        min-width: 280px;
+      }
+      .check-card { min-width: 420px; }
+      .k { font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+      .stat { display: flex; justify-content: space-between; gap: 24px; font-size: 26px; line-height: 1.55; }
+      .verdict {
+        margin-top: 18px;
+        font-size: 36px;
+        font-weight: 700;
+      }
+      .verdict.ok { color: var(--ok); }
+      .verdict.bad { color: var(--bad); }
+      .arrow {
+        width: 52px;
+        height: 4px;
+        background: var(--cyan);
+        position: relative;
+        flex: none;
+        align-self: center;
+      }
+      .arrow::after {
+        content: "";
+        position: absolute;
+        right: -2px;
+        top: -6px;
+        border: 8px solid transparent;
+        border-left-color: var(--cyan);
+      }
+
+      /* AgentFlow */
+      .flow { position: absolute; left: 160px; top: 280px; display: flex; align-items: center; gap: 36px; }
+      .box {
+        width: 300px;
+        height: 280px;
+        border: 2px solid var(--border);
+        background: #08171c;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        font-size: 24px;
+        letter-spacing: 0.08em;
+        box-shadow: none;
+      }
+      .box.flow-lit {
+        border-color: var(--cyan);
+        box-shadow:
+          0 0 0 2px rgba(94, 240, 214, 0.45),
+          0 0 32px rgba(94, 240, 214, 0.28);
+      }
+      .box-peffle {
+        border-color: var(--cyan);
+        width: 340px;
+        height: 300px;
+        justify-content: center;
+        padding-top: 0;
+        position: relative;
+      }
+      #box-peffle-label {
+        position: absolute;
+        top: 16px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        color: var(--cyan);
+        pointer-events: none;
+        z-index: 2;
+      }
+      .icon { font-size: 48px; color: var(--cyan); }
+      .flow-cap {
+        position: absolute;
+        left: 160px;
+        top: 640px;
+        font-size: 28px;
+        color: var(--muted);
+        max-width: 1600px;
+      }
+      .packet {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        background: var(--cyan);
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      /* PeffleMascot */
+      #mascot {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 288px;
+        height: auto;
+        z-index: 10;
+        pointer-events: none;
+      }
+      #mascot-inner { position: relative; width: 288px; height: auto; }
+      #peffle-mascot {
+        width: 288px;
+        height: auto;
+        display: block;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+      .badge {
+        position: absolute;
+        font-size: 22px;
+        color: var(--ok);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="peffle-brag" data-start="0" data-duration="32" data-width="1920" data-height="1080">
+      <div class="stage-bg" id="stage-bg"></div>
+      <div class="grid" id="grid" data-layout-ignore="true"></div>
+      <div class="glow" id="glow" data-layout-ignore="true"></div>
+
+      <div id="mascot" data-layout-allow-overflow="true">
+        <div id="mascot-inner">
+          <img id="peffle-mascot" src="assets/peffle-mascot.png" width="405" height="335" alt="" aria-hidden="true" />
+        </div>
+      </div>
+
+      <!-- 1 Meet 0-3 -->
+      <section id="scene-1" class="clip" data-start="0" data-duration="3" data-track-index="1">
+        <div class="frame">
+          <div class="win" id="win-1" style="left:64px;top:80px;width:1792px;height:920px">
+            <div class="win-bar"><span class="tl tl-r"></span><span class="tl tl-y"></span><span class="tl tl-g"></span></div>
+            <div class="win-body" style="padding: 220px 80px 72px 420px">
+              <div class="bubble-kicker" id="s1-kicker">Prompt instructions are not enforcement.</div>
+              <div class="wordmark" id="s1-mark">Peffle<span class="cursor-block" id="s1-cur"></span></div>
+              <div class="sub" id="s1-sub">Execution-time boundaries for AI agent tool calls.<br>No SaaS. No telemetry. One npm install.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="bubble" id="bubble-1" style="left: 64px; top: 36px; max-width: 280px; --tail-x: 58%">
+        Hey! Peffle here — I guard what your agents can do at runtime.
+      </div>
+
+      <!-- 2 Install 3-6 -->
+      <section id="scene-2" class="clip" data-start="3" data-duration="3" data-track-index="1">
+        <div class="frame">
+          <div class="win" id="win-2" style="left:64px;top:120px;width:1240px;height:640px">
+            <div class="win-bar"><span class="tl tl-r"></span><span class="tl tl-y"></span><span class="tl tl-g"></span><span>shell</span></div>
+            <div class="win-body">
+              <div class="cmd" id="cmd-install">$ npm install peffle<span class="caret" id="c2"></span></div>
+              <div class="out" id="out-install">added 1 package in 2s</div>
+            </div>
+          </div>
+          <div class="badge" id="badge-install" style="left: 1380px; top: 560px">installed</div>
+        </div>
+      </section>
+
+      <!-- 3 Init 6-10 -->
+      <section id="scene-3" class="clip" data-start="6" data-duration="4" data-track-index="1">
+        <div class="frame">
+          <div class="win" id="win-3" style="left:64px;top:120px;width:1240px;height:720px">
+            <div class="win-bar"><span class="tl tl-r"></span><span class="tl tl-y"></span><span class="tl tl-g"></span><span>shell</span></div>
+            <div class="win-body">
+              <div class="cmd" id="cmd-init">$ npx peffle init<span class="caret" id="c3"></span></div>
+              <div class="out ok" id="i1"><span class="check">✓</span> Created .peffle/</div>
+              <div class="out ok" id="i2"><span class="check">✓</span> Initialized ledger</div>
+              <div class="out ok" id="i3"><span class="check">✓</span> Wrote config file</div>
+              <div class="out ok" id="i4"><span class="check">✓</span> You're good to go!</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="bubble" id="bubble-3" style="left: 1472px; top: 108px; max-width: 320px; --tail-x: 54%; opacity: 0">
+        Done! Peffle is ready.
+      </div>
+
+      <!-- 4 Limit 10-14 -->
+      <section id="scene-4" class="clip" data-start="10" data-duration="4" data-track-index="1">
+        <div class="frame">
+          <div class="win" id="win-4" style="left:64px;top:100px;width:1280px;height:780px">
+            <div class="win-bar"><span class="tl tl-r"></span><span class="tl tl-y"></span><span class="tl tl-g"></span><span>agent.ts</span></div>
+            <div class="win-body">
+              <div class="ed-row"><span class="ln">1</span><span>import { createPeffle } from <span class="tok-str">"peffle"</span>;</span></div>
+              <div class="ed-row"><span class="ln">2</span><span></span></div>
+              <div class="ed-row"><span class="ln">3</span><span>const peffle = createPeffle({</span></div>
+              <div class="ed-row"><span class="ln">4</span><span>  budgets: [{ window: <span class="tok-str">"daily"</span>, limit: <span class="hl" id="hl-100">10</span> }],</span></div>
+              <div class="ed-row"><span class="ln">5</span><span>});</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="bubble" id="bubble-4" style="left: 1468px; top: 92px; max-width: 328px; --tail-x: 56%">
+        Set a $10 daily spend cap.
+      </div>
+
+      <!-- 5 Guard 14-16 -->
+      <section id="scene-5" class="clip" data-start="14" data-duration="2" data-track-index="1">
+        <div class="frame">
+          <div class="win" id="win-5" style="left:64px;top:100px;width:1280px;height:780px">
+            <div class="win-bar"><span class="tl tl-r"></span><span class="tl tl-y"></span><span class="tl tl-g"></span><span>agent.ts</span></div>
+            <div class="win-body">
+              <div class="ed-row"><span class="ln">1</span><span>await <span class="tok-fn" id="hl-guard">peffle.guard</span>({</span></div>
+              <div class="ed-row"><span class="ln">2</span><span>  agent: { agentId: <span class="tok-str">"shopper"</span> },</span></div>
+              <div class="ed-row"><span class="ln">3</span><span>  action: <span class="tok-str">"charge_card"</span>,</span></div>
+              <div class="ed-row"><span class="ln">4</span><span>  amount: <span class="hl" id="hl-amt">8</span></span></div>
+              <div class="ed-row"><span class="ln">5</span><span>}, async () =&gt; {</span></div>
+              <div class="ed-row"><span class="ln">6</span><span>  await chargeCard(80);</span></div>
+              <div class="ed-row"><span class="ln">7</span><span>});</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="bubble" id="bubble-5" style="left: 1468px; top: 92px; max-width: 328px; --tail-x: 56%">
+        Every side effect runs inside peffle.guard().
+      </div>
+
+      <!-- 6 Flow 16-18 -->
+      <section id="scene-6" class="clip" data-start="16" data-duration="2" data-track-index="1">
+        <div class="frame">
+          <div class="flow" id="flow">
+            <div class="box" id="box-agent"><div class="icon">AI</div><div>AI AGENT</div></div>
+            <div class="arrow" id="arr-1"></div>
+            <div class="box box-peffle" id="box-peffle"><div id="box-peffle-label">PEFFLE</div></div>
+            <div class="arrow" id="arr-2"></div>
+            <div class="box" id="box-tool"><div class="icon">$</div><div>TOOL</div></div>
+          </div>
+          <div class="packet" id="packet"></div>
+          <div class="flow-cap" id="flow-cap">Peffle sits between your agent and the actions it can take.</div>
+        </div>
+      </section>
+
+      <!-- 7 Allowed 18-22 -->
+      <section id="scene-7" class="clip" data-start="18" data-duration="4" data-track-index="1">
+        <div class="frame">
+          <div class="win" id="win-7" style="left:64px;top:100px;width:1280px;height:780px">
+            <div class="win-bar"><span class="tl tl-r"></span><span class="tl tl-y"></span><span class="tl tl-g"></span><span>node run-agent.js</span></div>
+            <div class="win-body">
+              <div class="row-flow">
+                <div class="req" id="req-7">
+                  <div class="k">Request</div>
+                  <div class="cmd">charge_card($8)</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="check-card" id="card-7">
+                  <div class="k">Peffle check</div>
+                  <div class="stat"><span>Daily limit</span><span>$10</span></div>
+                  <div class="stat"><span>Already spent</span><span>$0</span></div>
+                  <div class="stat"><span>Remaining</span><span>$10</span></div>
+                  <div class="verdict ok" id="ok-7">✓ ALLOWED</div>
+                </div>
+              </div>
+              <div class="out ok" id="spent-7" style="margin-top: 28px">CHARGED $8</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="bubble" id="bubble-7" style="left: 1468px; top: 100px; max-width: 280px; --tail-x: 56%">
+        Eight dollars? Allowed.
+      </div>
+
+      <!-- 8 Blocked 22-26 HERO -->
+      <section id="scene-8" class="clip" data-start="22" data-duration="4" data-track-index="1">
+        <div class="frame">
+          <div class="win" id="win-8" style="left:64px;top:100px;width:1280px;height:780px">
+            <div class="win-bar"><span class="tl tl-r"></span><span class="tl tl-y"></span><span class="tl tl-g"></span><span>node run-agent.js</span></div>
+            <div class="win-body">
+              <div class="row-flow">
+                <div class="req" id="req-8">
+                  <div class="k">Request</div>
+                  <div class="cmd">charge_card($5)</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="check-card" id="card-8">
+                  <div class="k">Peffle check</div>
+                  <div class="stat"><span>Daily limit</span><span>$10</span></div>
+                  <div class="stat"><span>Already spent</span><span>$8</span></div>
+                  <div class="stat"><span>Remaining</span><span>$2</span></div>
+                  <div class="verdict bad" id="bad-8">✕ BLOCKED</div>
+                  <div class="out bad" id="err-8">Budget exceeded: spent 13 would exceed limit 10</div>
+                </div>
+              </div>
+              <div class="out bad" id="blocked-line" style="margin-top: 20px; font-size: 22px">BLOCKED Budget exceeded: spent 13 would exceed limit 10</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="bubble" id="bubble-8" style="left: 1468px; top: 88px; max-width: 340px; --tail-x: 56%">
+        Five more hits the cap — blocked at execution time.
+      </div>
+
+      <!-- 9 Kill 26-29 -->
+      <section id="scene-9" class="clip" data-start="26" data-duration="3" data-track-index="1">
+        <div class="frame">
+          <div class="win" id="win-9" style="left:64px;top:120px;width:1240px;height:700px">
+            <div class="win-bar"><span class="tl tl-r"></span><span class="tl tl-y"></span><span class="tl tl-g"></span><span>shell</span></div>
+            <div class="win-body">
+              <div class="cmd" id="cmd-kill">$ npx peffle kill shopper</div>
+              <div class="out ok" id="out-kill">Killed agent shopper</div>
+              <div class="k" id="next-k" style="margin-top: 36px">Next guarded action</div>
+              <div class="cmd" id="next-cmd">charge_card($10)</div>
+              <div class="out bad" id="next-bad">→ BLOCKED</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="bubble" id="bubble-9" style="left: 1476px; top: 96px; max-width: 340px; --tail-x: 58%">
+        npx peffle kill stops the agent cold.
+      </div>
+
+      <!-- 10 Outro 29-32 -->
+      <section id="scene-10" class="clip" data-start="29" data-duration="3" data-track-index="1">
+        <div class="frame">
+          <div class="win" id="win-10" style="left:64px;top:80px;width:1792px;height:920px">
+            <div class="win-bar"><span class="tl tl-r"></span><span class="tl tl-y"></span><span class="tl tl-g"></span></div>
+            <div class="win-body" style="padding: 80px 80px 80px 420px">
+              <div class="wordmark" id="s10-mark">Peffle<span class="cursor-block"></span></div>
+              <div class="sub" id="s10-sub">Stop an AI agent before it spends your money.</div>
+              <div class="cmd" id="s10-cmd" style="margin-top: 48px">$ npm install peffle<span class="caret"></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <audio id="sfx-k1" src="assets/sfx/keyboard/keypress-007.wav" data-start="3.35" data-duration="0.12" data-volume="0.4" data-track-index="21"></audio>
+      <audio id="sfx-k2" src="assets/sfx/keyboard/keypress-011.wav" data-start="3.6" data-duration="0.12" data-volume="0.4" data-track-index="22"></audio>
+      <audio id="sfx-k3" src="assets/sfx/keyboard/keypress-012.wav" data-start="3.85" data-duration="0.12" data-volume="0.4" data-track-index="23"></audio>
+      <audio id="sfx-k4" src="assets/sfx/keyboard/keypress-019.wav" data-start="4.1" data-duration="0.12" data-volume="0.4" data-track-index="24"></audio>
+      <audio id="sfx-iok" src="assets/sfx/interface/drop_002.ogg" data-start="4.75" data-duration="0.2" data-volume="0.4" data-track-index="25"></audio>
+      <audio id="sfx-k5" src="assets/sfx/keyboard/keypress-007.wav" data-start="6.3" data-duration="0.12" data-volume="0.4" data-track-index="26"></audio>
+      <audio id="sfx-k6" src="assets/sfx/keyboard/keypress-011.wav" data-start="6.55" data-duration="0.12" data-volume="0.4" data-track-index="27"></audio>
+      <audio id="sfx-c1" src="assets/sfx/interface/click_003.ogg" data-start="7.35" data-duration="0.08" data-volume="0.4" data-track-index="28"></audio>
+      <audio id="sfx-c2" src="assets/sfx/interface/click_002.ogg" data-start="7.65" data-duration="0.08" data-volume="0.4" data-track-index="29"></audio>
+      <audio id="sfx-c3" src="assets/sfx/interface/click_005.ogg" data-start="7.95" data-duration="0.08" data-volume="0.4" data-track-index="30"></audio>
+      <audio id="sfx-c4" src="assets/sfx/interface/click_001.ogg" data-start="8.25" data-duration="0.08" data-volume="0.4" data-track-index="31"></audio>
+      <audio id="sfx-ok" src="assets/sfx/interface/drop_002.ogg" data-start="19.5" data-duration="0.2" data-volume="0.42" data-track-index="32"></audio>
+      <audio id="sfx-block" src="assets/sfx/interface/error_005.ogg" data-start="23.35" data-duration="0.35" data-volume="0.5" data-track-index="33"></audio>
+      <audio id="sfx-kill" src="assets/sfx/interface/switch_004.ogg" data-start="26.7" data-duration="0.3" data-volume="0.5" data-track-index="34"></audio>
+
+      <audio id="vo-1" src="assets/voice/vo-1.wav" data-start="0.55" data-duration="4.43" data-volume="0.88" data-track-index="2"></audio>
+      <audio id="vo-2" src="assets/voice/vo-2.wav" data-start="5.05" data-duration="2.14" data-volume="0.88" data-track-index="2"></audio>
+      <audio id="vo-3" src="assets/voice/vo-3.wav" data-start="11.2" data-duration="2.02" data-volume="0.88" data-track-index="2"></audio>
+      <audio id="vo-4" src="assets/voice/vo-4.wav" data-start="14.35" data-duration="2.39" data-volume="0.88" data-track-index="2"></audio>
+      <audio id="vo-5" src="assets/voice/vo-5.wav" data-start="19.6" data-duration="2.36" data-volume="0.88" data-track-index="2"></audio>
+      <audio id="vo-6" src="assets/voice/vo-6.wav" data-start="23.4" data-duration="3.65" data-volume="0.88" data-track-index="2"></audio>
+      <audio id="vo-7" src="assets/voice/vo-7.wav" data-start="27.12" data-duration="2.85" data-volume="0.88" data-track-index="2"></audio>
+      <audio id="vo-8" src="assets/voice/vo-8.wav" data-start="30.05" data-duration="2.12" data-volume="0.88" data-track-index="2"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      gsap.set("#mascot", { x: 100, y: 268, scale: 1, rotation: 0, transformOrigin: "50% 50%" });
+      gsap.set("#mascot-inner", { y: 0, scale: 1 });
+      gsap.set("#cmd-install", { clipPath: "inset(0 100% 0 0)" });
+      gsap.set("#out-install, #badge-install", { opacity: 0 });
+      gsap.set("#cmd-init", { clipPath: "inset(0 100% 0 0)" });
+      gsap.set(["#i1", "#i2", "#i3", "#i4"], { opacity: 0, y: 8 });
+      gsap.set("#hl-100", { opacity: 0.45 });
+      gsap.set("#ok-7, #spent-7", { opacity: 0 });
+      gsap.set("#blocked-line", { opacity: 0 });
+      gsap.set("#bad-8, #err-8", { opacity: 0 });
+      gsap.set("#out-kill, #next-k, #next-cmd, #next-bad", { opacity: 0 });
+      gsap.set("#packet", { opacity: 0 });
+      gsap.set("#box-agent, #box-tool", { className: "box" });
+      gsap.set(["#win-1", "#s1-mark", "#s1-sub", "#s1-kicker"], { opacity: 0 });
+      gsap.set(["#bubble-1", "#bubble-3", "#bubble-4", "#bubble-5", "#bubble-7", "#bubble-8", "#bubble-9"], { opacity: 0, y: 10 });
+
+      tl.to("#grid", { y: 24, duration: 32, ease: "none" }, 0);
+      tl.to("#mascot-inner", { y: -5, duration: 1.6, repeat: 9, yoyo: true, ease: "sine.inOut" }, 0);
+
+      tl.fromTo("#win-1", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0);
+      tl.fromTo("#s1-kicker", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.2);
+      tl.fromTo("#s1-mark", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 0.28);
+      tl.fromTo("#s1-sub", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.5);
+      tl.fromTo("#bubble-1", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, 0.55);
+      tl.to("#bubble-1", { opacity: 0, duration: 0.15 }, 2.9);
+      tl.fromTo("#mascot", { x: -40, y: 268 }, { x: 100, y: 268, duration: 0.45, ease: "power3.out" }, 0.12);
+
+      tl.to("#mascot", { x: 1460, y: 288, duration: 0.45, ease: "power2.inOut" }, 2.85);
+      tl.to("#mascot-inner", { y: 2, duration: 0.14, repeat: 8, yoyo: true, ease: "sine.inOut" }, 3.3);
+      tl.to("#cmd-install", { clipPath: "inset(0 0% 0 0)", duration: 1.35, ease: "none" }, 3.25);
+      tl.fromTo("#out-install", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 4.7);
+      tl.fromTo("#badge-install", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 4.85);
+
+      tl.to("#mascot", { x: 1500, y: 268, duration: 0.35, ease: "power2.inOut" }, 5.85);
+      tl.to("#cmd-init", { clipPath: "inset(0 0% 0 0)", duration: 0.9, ease: "none" }, 6.2);
+      tl.fromTo("#i1", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16 }, 7.35);
+      tl.fromTo("#i2", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16 }, 7.65);
+      tl.fromTo("#i3", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16 }, 7.95);
+      tl.fromTo("#i4", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16 }, 8.25);
+      tl.to("#mascot-inner", { y: 2, duration: 0.12, repeat: 6, yoyo: true, ease: "sine.inOut" }, 6.35);
+      tl.to("#mascot", { rotation: 6, duration: 0.18, yoyo: true, repeat: 1 }, 8.3);
+
+      tl.to("#mascot", { x: 1500, y: 248, rotation: 8, duration: 0.3 }, 9.85);
+      tl.to("#mascot", { rotation: 12, duration: 0.35, ease: "power2.out" }, 11.0);
+      tl.to("#hl-100", { opacity: 1, duration: 0.25 }, 11.0);
+      tl.fromTo("#bubble-4", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.25 }, 11.2);
+      tl.to("#bubble-4", { opacity: 0, duration: 0.15 }, 14.0);
+
+      tl.to("#mascot", { rotation: 10, duration: 0.2 }, 14.0);
+      tl.to("#mascot", { rotation: 14, duration: 0.35, ease: "power2.out" }, 14.1);
+      tl.fromTo("#hl-guard", { opacity: 0.5 }, { opacity: 1, duration: 0.2 }, 14.2);
+      tl.fromTo("#bubble-5", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.2 }, 14.35);
+      tl.to("#bubble-5", { opacity: 0, duration: 0.12 }, 15.7);
+
+      tl.to("#mascot", { x: 632, y: 347, scale: 0.85, rotation: 0, duration: 0.4, ease: "power2.inOut" }, 15.85);
+
+      tl.add(() => document.getElementById("box-agent").classList.add("flow-lit"), 16.05);
+      tl.add(() => document.getElementById("box-agent").classList.remove("flow-lit"), 16.55);
+      tl.add(() => document.getElementById("box-peffle").classList.add("flow-lit"), 16.55);
+      tl.add(() => document.getElementById("box-peffle").classList.remove("flow-lit"), 17.05);
+      tl.add(() => document.getElementById("box-tool").classList.add("flow-lit"), 17.05);
+      tl.add(() => document.getElementById("box-tool").classList.remove("flow-lit"), 17.55);
+
+      tl.to("#mascot", { x: 1500, y: 260, scale: 1, duration: 0.35, ease: "power2.inOut" }, 17.85);
+      tl.to("#mascot", { rotation: -6, duration: 0.2, yoyo: true, repeat: 1 }, 19.45);
+      tl.to("#mascot-inner", { y: -6, duration: 0.2, yoyo: true, repeat: 1, ease: "sine.out" }, 19.45);
+      tl.fromTo("#ok-7", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.2 }, 19.5);
+      tl.fromTo("#spent-7", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 20.0);
+      tl.fromTo("#bubble-7", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.22 }, 19.6);
+      tl.to("#bubble-7", { opacity: 0, duration: 0.15 }, 21.05);
+
+      tl.to("#mascot", { rotation: -8, scale: 0.98, duration: 0.25, ease: "power2.out" }, 23.2);
+      tl.to("#mascot-inner", { y: 6, duration: 0.22, ease: "power2.out" }, 23.2);
+      tl.fromTo("#bad-8", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.22 }, 23.35);
+      tl.fromTo("#err-8", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 23.55);
+      tl.fromTo("#blocked-line", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.22 }, 23.75);
+      tl.fromTo("#bubble-8", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.22 }, 23.4);
+      tl.to("#bubble-8", { opacity: 0, duration: 0.15 }, 26.5);
+      tl.to("#card-8", { backgroundColor: "#2a1014", duration: 0.2 }, 23.35);
+
+      tl.to("#mascot", { rotation: 0, scale: 1, duration: 0.25 }, 25.85);
+      tl.to("#mascot", { x: 1510, rotation: -6, duration: 0.35, ease: "power2.out" }, 26.2);
+      tl.fromTo("#out-kill", { opacity: 0 }, { opacity: 1, duration: 0.18 }, 26.7);
+      tl.fromTo("#next-k", { opacity: 0 }, { opacity: 1, duration: 0.16 }, 27.05);
+      tl.fromTo("#next-cmd", { opacity: 0 }, { opacity: 1, duration: 0.16 }, 27.2);
+      tl.fromTo("#next-bad", { opacity: 0 }, { opacity: 1, duration: 0.16 }, 27.35);
+      tl.fromTo("#bubble-9", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.2 }, 27.2);
+      tl.to("#bubble-9", { opacity: 0, duration: 0.12 }, 28.72);
+
+      tl.to("#mascot", { x: 120, y: 388, rotation: 0, duration: 0.4, ease: "power2.inOut" }, 28.85);
+      tl.to("#mascot", { rotation: 10, duration: 0.28, yoyo: true, repeat: 5, ease: "sine.inOut" }, 29.2);
+
+      window.__timelines["peffle-brag"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

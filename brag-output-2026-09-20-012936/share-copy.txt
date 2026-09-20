@@ -1,0 +1,3 @@
+Prompt instructions are not enforcement. Peffle guards tool calls at execution time — spend cap, approval, kill switch. No SaaS. One npm install.
+
+Stop an AI agent before it spends your money.

@@ -7,6 +7,12 @@ No SaaS. No telemetry. One `npm install`.
 
 Peffle runs inside your agent process. There is no external service required for enforcement.
 
+## Demo
+
+<video controls playsinline poster="brag-output-2026-09-20-012936/brag.jpg" src="brag-output-2026-09-20-012936/brag.mp4" width="100%"></video>
+
+**[Open the demo video](brag-output-2026-09-20-012936/brag.mp4)** · [Poster frame](brag-output-2026-09-20-012936/brag.jpg)
+
 [![npm](https://img.shields.io/npm/v/peffle)](https://www.npmjs.com/package/peffle)
 [![license](https://img.shields.io/npm/l/peffle)](./LICENSE)
 

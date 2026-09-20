@@ -1,0 +1,19 @@
+{
+  "duration": 32,
+  "maxStaticSec": 3.5,
+  "assertions": [
+    { "kind": "appearsBy", "selector": "#s1-mark", "bySec": 0.8 },
+    { "kind": "appearsBy", "selector": "#cmd-install", "bySec": 4.8 },
+    { "kind": "appearsBy", "selector": "#i4", "bySec": 8.6 },
+    { "kind": "appearsBy", "selector": "#hl-100", "bySec": 11.5 },
+    { "kind": "appearsBy", "selector": "#hl-guard", "bySec": 14.6 },
+    { "kind": "appearsBy", "selector": "#ok-7", "bySec": 20.0 },
+    { "kind": "appearsBy", "selector": "#bad-8", "bySec": 23.8 },
+    { "kind": "appearsBy", "selector": "#s10-mark", "bySec": 29.6 },
+    { "kind": "before", "a": "#s1-mark", "b": "#cmd-install" },
+    { "kind": "before", "a": "#ok-7", "b": "#bad-8" },
+    { "kind": "before", "a": "#bad-8", "b": "#s10-mark" },
+    { "kind": "staysInFrame", "selector": "#s1-mark" },
+    { "kind": "staysInFrame", "selector": "#bad-8" }
+  ]
+}

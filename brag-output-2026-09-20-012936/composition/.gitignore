@@ -1,0 +1,6 @@
+.thumbnails/
+snapshots/
+.DS_Store
+.waveform-cache/
+assets/music/
+assets/voice/tests/
