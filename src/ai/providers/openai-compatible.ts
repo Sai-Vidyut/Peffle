@@ -8,12 +8,16 @@ export interface OpenAICompatibleConfig {
   apiKey: string;
   model: string;
   baseUrl?: string;
+  /** CLI / logging label id (e.g. gemini, groq). */
+  providerId?: string;
 }
 
 export class OpenAICompatibleProvider implements PeffleAIProvider {
-  readonly id = "openai-compatible";
+  readonly id: string;
 
-  constructor(private readonly config: OpenAICompatibleConfig) {}
+  constructor(private readonly config: OpenAICompatibleConfig) {
+    this.id = config.providerId ?? "openai-compatible";
+  }
 
   async chat(input: string, context: PeffleContext): Promise<PeffleAIResponse> {
     const base = this.config.baseUrl?.replace(/\/$/, "") ?? "https://api.openai.com/v1";

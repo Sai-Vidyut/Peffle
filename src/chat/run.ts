@@ -4,6 +4,7 @@ import { ProviderUnavailableError } from "../ai/provider.js";
 import { ChatSession, readPackageVersion, renderBanner } from "./session.js";
 import {
   formatContextHint,
+  formatAIProviderHint,
   formatInputDivider,
   formatShortcutsHint,
   writeTerminalClear,
@@ -73,10 +74,12 @@ export async function runPeffleChat(opts: ChatRunOptions = {}): Promise<ChatRunR
   };
 
   let provider = opts.provider;
+  let aiLabel: string | null = null;
   if (provider === undefined) {
     try {
-      const { createPeffleAIProviderFromEnv } = await import("../ai/provider.js");
+      const { createPeffleAIProviderFromEnv, getAIProviderStartupLabel } = await import("../ai/provider.js");
       provider = createPeffleAIProviderFromEnv();
+      aiLabel = getAIProviderStartupLabel();
     } catch (e) {
       if (e instanceof ProviderUnavailableError) {
         write(chalk.hex(colors.red)(`  ${e.message}`));
@@ -103,6 +106,8 @@ export async function runPeffleChat(opts: ChatRunOptions = {}): Promise<ChatRunR
     if (!opts.skipBanner) {
       write(renderBanner(readPackageVersion(), w, recentActivityLines(session)));
       write(formatContextHint(w));
+      const providerHint = formatAIProviderHint(aiLabel);
+      if (providerHint) write(providerHint);
       write(formatInputDivider(w));
       write(formatShortcutsHint(w));
     }

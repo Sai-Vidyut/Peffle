@@ -155,6 +155,11 @@ export function formatContextHint(terminalWidth: number): string {
   return indent(dim("Try /policy or ask Peffle in plain language."));
 }
 
+export function formatAIProviderHint(label: string | null | undefined): string {
+  if (!label) return "";
+  return indent(dim(`AI: ${label}`));
+}
+
 export function formatShortcutsHint(terminalWidth: number): string {
   void terminalWidth;
   return indent(dim("? for shortcuts"));

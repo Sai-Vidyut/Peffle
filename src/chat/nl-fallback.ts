@@ -1,8 +1,17 @@
 import type { PeffleAIProvider } from "../ai/types.js";
+import { AllProvidersFailedError } from "../ai/provider.js";
+import { FallbackChainProvider } from "../ai/providers/fallback-chain.js";
 import { buildPeffleContext } from "../ai/context.js";
 import { executeToolCall } from "../ai/tools.js";
 import type { ChatSession } from "./session.js";
 import { handleSlashCommand, handleConfirmation } from "./commands.js";
+
+export function deterministicNlFallbackLines(): string[] {
+  return [
+    "AI providers are unavailable. Slash commands and simple offline phrases still work.",
+    "Try /help, /policy, or set GEMINI_API_KEY / GROQ_API_KEY for natural language.",
+  ];
+}
 
 export function tryNaturalLanguageRoute(
   session: ChatSession,
@@ -53,7 +62,7 @@ export async function handleNaturalLanguage(
   if (!provider) {
     return [
       "No AI provider configured. Use slash commands (/help) or set PEFFLE_AI_PROVIDER.",
-      "Example: PEFFLE_AI_PROVIDER=openai PEFFLE_AI_API_KEY=... npx peffle chat",
+      "Example: PEFFLE_AI_PROVIDER=gemini GEMINI_API_KEY=... npx peffle chat",
     ];
   }
 
@@ -63,8 +72,22 @@ export async function handleNaturalLanguage(
     session.storagePath,
     session.getPolicy()
   );
-  const response = await provider.chat(input, ctx);
+
+  let response;
+  try {
+    response = await provider.chat(input, ctx);
+  } catch (e) {
+    if (e instanceof AllProvidersFailedError) {
+      const lines = [...e.notices];
+      lines.push(...deterministicNlFallbackLines());
+      return lines;
+    }
+    throw e;
+  }
   const lines: string[] = [];
+  if (provider instanceof FallbackChainProvider) {
+    lines.push(...provider.drainNotices());
+  }
   if (response.message) lines.push(response.message);
 
   if (response.toolCalls?.length) {
