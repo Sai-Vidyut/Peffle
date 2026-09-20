@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import { Power, ListChecks, Wallet, ScrollText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/copy-button";
@@ -12,6 +9,7 @@ type WalkStep = {
   body: string;
   code: string;
   highlightLines: number[];
+  fileLabel: string;
 };
 
 const STEPS: WalkStep[] = [
@@ -19,7 +17,7 @@ const STEPS: WalkStep[] = [
     id: "create",
     n: "01",
     title: "Create an instance",
-    body: "Point storage at a SQLite file and load your JSON policy (defaults, budgets, actions).",
+    body: "Point storage at a SQLite file and load your JSON policy.",
     code: `import { createPeffle } from "peffle";
 
 const peffle = createPeffle({
@@ -27,23 +25,25 @@ const peffle = createPeffle({
   policy: { /* version, defaults, budgets, actions */ },
 });`,
     highlightLines: [1, 3, 4, 5, 6],
+    fileLabel: "agent.ts",
   },
   {
     id: "guard",
     n: "02",
     title: "Wrap a side effect",
-    body: "Every spend, send, or write runs inside guard() — policy, budgets, and the kill switch run before your handler.",
+    body: "Every spend, send, or write runs inside guard() — checks run before your handler.",
     code: `await peffle.guard(
   { agent: { agentId: "shopper" }, action: "charge_card", amount: 8 },
   async () => chargeCard(8)
 );`,
     highlightLines: [1, 2, 3],
+    fileLabel: "agent.ts",
   },
   {
     id: "approval",
     n: "03",
     title: "Handle an approval",
-    body: "When a rule requires approval, guard() throws ApprovalRequiredError with a one-time eventId and token. Approve out of band, then retry.",
+    body: "When a rule requires approval, guard() throws with a one-time eventId and token. Approve out of band, then retry.",
     code: `try {
   await peffle.guard(request, handler);
 } catch (err) {
@@ -54,17 +54,19 @@ const peffle = createPeffle({
   }
 }`,
     highlightLines: [4, 5, 6, 7],
+    fileLabel: "agent.ts",
   },
   {
     id: "cli",
     n: "04",
     title: "Operate from the CLI",
-    body: "Inspect pending approvals, kill an agent, or dump the ledger without leaving the terminal.",
+    body: "Inspect pending approvals, kill an agent, or dump the ledger from the terminal.",
     code: `npx peffle pending
 npx peffle approve <eventId>
 npx peffle kill <agentId>
 npx peffle ledger --json`,
     highlightLines: [1, 2, 3, 4],
+    fileLabel: "shell",
   },
 ];
 
@@ -82,7 +84,7 @@ const PROOFS: ProofCard[] = [
   {
     id: "kill",
     title: "Kill switch",
-    body: "Checked first. Halt one agent or everything before policy or budgets run. Reachable from the CLI.",
+    body: "Halt one agent or everything before policy or budgets run.",
     icon: Power,
     tone: "deny",
     proofLabel: "CLI",
@@ -95,7 +97,7 @@ const PROOFS: ProofCard[] = [
   {
     id: "policy",
     title: "Policy",
-    body: "JSON rules match actions to allow, deny, or require approval. Peffle's default when nothing matches is deny.",
+    body: "JSON rules match actions to allow, deny, or require approval. Default when nothing matches: deny.",
     icon: ListChecks,
     tone: "allow",
     proofLabel: "policy",
@@ -108,7 +110,7 @@ const PROOFS: ProofCard[] = [
   {
     id: "budgets",
     title: "Budgets",
-    body: "Spend is checked and reserved inside a SQLite transaction so processes sharing one DB file don't double-spend.",
+    body: "Spend is checked and reserved in a SQLite transaction so shared DB files don't double-spend.",
     icon: Wallet,
     tone: "allow",
     proofLabel: "demo.mjs",
@@ -121,7 +123,7 @@ const PROOFS: ProofCard[] = [
   {
     id: "ledger",
     title: "Ledger",
-    body: "Every guard() call writes an audit event — allowed, denied, or pending — regardless of outcome.",
+    body: "Every guard() call writes an audit event — allowed, denied, or pending.",
     icon: ScrollText,
     tone: "info",
     proofLabel: "ledger",
@@ -151,118 +153,92 @@ function WalkthroughCode({ step }: { step: WalkStep }) {
   const lines = step.code.split("\n");
 
   return (
-    <div className="relative overflow-x-auto border border-[var(--border)] bg-[var(--panel)] px-4 py-3.5 text-[12.5px]">
-      <CopyButton
-        value={step.code}
-        className="absolute top-2 right-2 z-10 bg-[var(--panel-2)] px-2 py-1 text-[11px]"
-      />
-      <pre className="m-0 pr-16 whitespace-pre">
-        {lines.map((line, i) => {
-          const n = i + 1;
-          const active = step.highlightLines.includes(n);
-          return (
-            <span
-              key={n}
-              className={cn(
-                "block leading-[1.9]",
-                active ? "bg-[var(--panel-2)] text-[var(--text)]" : "text-[var(--muted)]"
-              )}
-            >
-              <span className="inline-block w-6 pr-3 text-right text-[var(--muted)]/50 select-none">
-                {n}
+    <div className="evidence-shadow overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--panel)]">
+      <div className="flex items-center gap-2 border-b border-[var(--border)] px-3.5 py-2.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--border)]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--muted)]/40" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--muted)]/70" />
+        <span className="ml-1.5 font-sans text-[11px] tracking-wide text-[var(--muted)]">
+          {step.fileLabel}
+        </span>
+      </div>
+      <div className="relative overflow-x-auto px-4 py-3.5 font-mono text-[12.5px]">
+        <CopyButton
+          value={step.code}
+          className="absolute top-2 right-2 z-10 bg-[var(--panel-2)] px-4 py-1.5 text-[11px]"
+        />
+        <pre className="m-0 pr-16 whitespace-pre">
+          {lines.map((line, i) => {
+            const n = i + 1;
+            const active = step.highlightLines.includes(n);
+            return (
+              <span
+                key={n}
+                className={cn(
+                  "block leading-[1.9]",
+                  active ? "bg-[var(--panel-2)] text-[var(--text)]" : "text-[var(--muted)]"
+                )}
+              >
+                <span className="inline-block w-6 pr-3 text-right text-[var(--muted)]/50 select-none">
+                  {n}
+                </span>
+                {line.length === 0 ? " " : line}
               </span>
-              {line.length === 0 ? " " : line}
-            </span>
-          );
-        })}
-      </pre>
+            );
+          })}
+        </pre>
+      </div>
     </div>
   );
 }
 
 export function HowToWalkthrough() {
-  const [active, setActive] = useState(0);
-  const step = STEPS[active]!;
-
   return (
-    <div className="space-y-10">
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
-        <div className="space-y-2 lg:col-span-5">
-          <p className="mb-3 text-xs tracking-wide text-[var(--muted)] uppercase">Walkthrough</p>
-          {STEPS.map((s, i) => {
-            const selected = i === active;
-            return (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => setActive(i)}
-                onMouseEnter={() => setActive(i)}
-                className={cn(
-                  "w-full border border-transparent p-4 text-left transition-colors",
-                  selected
-                    ? "border-[var(--border)] bg-[var(--panel)]"
-                    : "hover:border-[var(--border)] hover:bg-[var(--panel-2)]"
-                )}
-              >
-                <div className="flex items-start gap-3">
-                  <span
-                    className={cn(
-                      "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border border-[var(--border)] text-[10px] font-bold",
-                      selected ? "text-[var(--text)]" : "text-[var(--muted)]"
-                    )}
-                  >
-                    {s.n}
-                  </span>
-                  <div>
-                    <h4
-                      className={cn(
-                        "mb-1 text-[13.5px] font-semibold",
-                        selected ? "text-[var(--text)]" : "text-[var(--muted)]"
-                      )}
-                    >
-                      {s.title}
-                    </h4>
-                    <p className="m-0 text-[12.5px] text-[var(--muted)]">{s.body}</p>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="lg:col-span-7">
-          <div className="mb-2 flex items-center justify-between gap-2 border border-b-0 border-[var(--border)] bg-[var(--panel)] px-3.5 py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-[var(--border)]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[var(--muted)]/40" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[var(--muted)]/70" />
-              <span className="ml-1.5 text-[11px] tracking-wide text-[var(--muted)]">
-                {step.id === "cli" ? "shell" : "agent.ts"}
-              </span>
+    <div className="space-y-16">
+      {STEPS.map((step, i) => {
+        const reverse = i % 2 === 1;
+        return (
+          <div
+            key={step.id}
+            className={cn(
+              "grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12",
+              reverse && "md:[&>*:first-child]:order-2"
+            )}
+          >
+            <div>
+              <p className="mb-3 text-[11px] font-medium tracking-[0.14em] text-[var(--muted)] uppercase">
+                {step.n}
+              </p>
+              <h3 className="mb-3 text-[22px] font-semibold tracking-tight text-[var(--text)] md:text-[24px]">
+                {step.title}
+              </h3>
+              <p className="m-0 max-w-[40ch] text-[15px] text-[var(--muted)]">{step.body}</p>
             </div>
+            <WalkthroughCode step={step} />
           </div>
-          <WalkthroughCode step={step} />
-        </div>
-      </div>
+        );
+      })}
 
       <div>
-        <h3 className="mb-2 text-[15px] font-semibold">What guard() enforces</h3>
-        <p className="mb-6 max-w-[68ch] text-[var(--muted)]">
-          The same checks run on every call. Details below match the How it works section.
+        <h3 className="mb-2 text-[22px] font-semibold tracking-tight md:text-[24px]">
+          What guard() enforces
+        </h3>
+        <p className="mb-8 max-w-[68ch] text-[var(--muted)]">
+          The same checks run on every call. Details match the How it works section.
         </p>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {PROOFS.map((card) => (
             <div
               key={card.id}
-              className="flex flex-col border border-[var(--border)] bg-[var(--panel)] md:flex-row"
+              className="flex flex-col overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--panel)] md:flex-row"
             >
-              <div className="flex flex-1 flex-col justify-center p-4 md:p-5">
+              <div className="flex flex-1 flex-col justify-center p-5 md:p-6">
                 <div className="mb-2 flex items-center gap-3">
-                  <span className={cn("h-[7px] w-[7px] shrink-0", toneDot(card.tone))} />
+                  <span className={cn("h-[7px] w-[7px] shrink-0 rounded-sm", toneDot(card.tone))} />
                   <card.icon className="h-[18px] w-[18px] shrink-0 text-[var(--muted)]" />
-                  <h4 className="text-[13.5px] font-semibold text-[var(--text)]">{card.title}</h4>
+                  <h4 className="text-[15px] font-semibold text-[var(--text)]">{card.title}</h4>
                 </div>
-                <p className="m-0 max-w-[42ch] text-[13px] text-[var(--muted)]">{card.body}</p>
+                <p className="m-0 max-w-[42ch] text-[14px] text-[var(--muted)]">{card.body}</p>
               </div>
               <div className="flex flex-col border-t border-[var(--border)] bg-[var(--panel-2)] md:w-72 md:border-t-0 md:border-l">
                 <div className="border-b border-[var(--border)] px-3.5 py-2">

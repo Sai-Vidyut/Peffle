@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const links = [
+  { id: "what-guard-catches", label: "Catches" },
   { id: "overview", label: "Overview" },
   { id: "how-it-works", label: "How it works" },
   { id: "how-to-use", label: "How to use" },
@@ -12,7 +13,7 @@ const links = [
 ];
 
 export function ScrollspyNav() {
-  const [active, setActive] = useState("overview");
+  const [active, setActive] = useState("what-guard-catches");
 
   useEffect(() => {
     const sections = links
@@ -49,7 +50,7 @@ export function ScrollspyNav() {
         href="https://github.com/Sai-Vidyut/Peffle"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex shrink-0 items-center gap-1.5 border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text)] transition-colors hover:border-[var(--info)] hover:text-[var(--info)]"
+        className="flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-border-btn)] px-5 py-1.5 text-xs text-[var(--text)] transition-colors hover:border-[var(--info)] hover:text-[var(--info)]"
       >
         GitHub
       </a>
