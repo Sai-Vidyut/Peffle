@@ -62,7 +62,7 @@ export async function handleNaturalLanguage(
   if (!provider) {
     return [
       "No AI provider configured. Use slash commands (/help) or set PEFFLE_AI_PROVIDER.",
-      "Set GEMINI_API_KEY / GROQ_API_KEY in the environment or in .env (current directory).",
+      "Set GEMINI_API_KEY / GROQ_API_KEY in the environment, ~/.config/peffle/.env, or .env in the current directory.",
     ];
   }
 
