@@ -1,6 +1,6 @@
 {
   "name": "peffle",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Stop an AI agent before it spends your money — local kill switch, spend caps, and approval gates for tool calls",
   "license": "Apache-2.0",
   "author": "Sai Vidyut",
