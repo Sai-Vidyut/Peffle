@@ -168,4 +168,17 @@ program
     }
   });
 
+program
+  .command("chat")
+  .description("Interactive Peffle terminal for policy, approvals, and agent control")
+  .action(async (_opts, cmd) => {
+    const globals = cmd.optsWithGlobals();
+    const { runPeffleChat } = await import("../chat/run.js");
+    const code = await runPeffleChat({
+      storagePath: globals.storage,
+      policyPath: globals.policy,
+    }).then((r) => r.exitCode);
+    process.exitCode = code;
+  });
+
 program.parse();
