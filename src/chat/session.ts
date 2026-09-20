@@ -1,5 +1,7 @@
+import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createPeffle } from "../core/index.js";
 import type { Peffle, PolicyConfig } from "../core/types.js";
 import { parsePolicyConfig } from "../core/schema.js";
@@ -78,11 +80,19 @@ export { peffleSay } from "./present.js";
 
 export function readPackageVersion(): string {
   try {
-    const pkg = JSON.parse(readFileSync(resolve(process.cwd(), "package.json"), "utf8")) as {
-      version?: string;
-    };
-    return pkg.version ?? "0.0.0";
+    const require = createRequire(import.meta.url);
+    const pkg = require("../../package.json") as { version?: string };
+    if (typeof pkg.version === "string" && pkg.version.length > 0) return pkg.version;
   } catch {
-    return "0.1.1";
+    // fall through
   }
+  try {
+    const pkgPath = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "package.json");
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as { version?: string };
+    if (typeof pkg.version === "string" && pkg.version.length > 0) return pkg.version;
+  } catch {
+    // fall through
+  }
+  const fromNpm = process.env.npm_package_version?.trim();
+  return fromNpm && fromNpm.length > 0 ? fromNpm : "0.0.0";
 }

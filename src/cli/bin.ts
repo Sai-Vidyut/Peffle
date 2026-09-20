@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { createPeffle, DEFAULT_POLICY_EXAMPLE } from "../core/index.js";
+import { readPackageVersion } from "../chat/session.js";
 
 function openPeffle(storage?: string, policy?: string) {
   return createPeffle({
@@ -16,6 +17,7 @@ const program = new Command();
 program
   .name("peffle")
   .description("Local policy, kill switch, and audit ledger for AI agents")
+  .version(readPackageVersion())
   .option("--storage <path>", "SQLite ledger path", process.env.PEFFLE_STORAGE)
   .option("--policy <path>", "Policy JSON path", process.env.PEFFLE_POLICY);
 
