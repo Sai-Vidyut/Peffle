@@ -8,6 +8,8 @@ dist/
 *.sqlite
 .DS_Store
 coverage/
+peffle-website/.next/
+peffle-website/out/
 .peffle/
 credentials
 tokens
