@@ -83,7 +83,7 @@ const heroTabs: TerminalTab[] = [
       <div className="mb-3.5 flex items-center gap-2.5 border-b border-dashed border-[var(--border)] pb-3.5">
         <span className="h-1.5 w-1.5 shrink-0 bg-[var(--text)]" aria-hidden="true" />
         <div className="font-sans text-xs text-[var(--muted)]">
-          <strong className="text-[var(--text)]">Peffle v0.1.1</strong>
+          <strong className="text-[var(--text)]">Peffle v0.1.7</strong>
           {": local enforcement layer. No network calls, no hosted service."}
         </div>
       </div>
