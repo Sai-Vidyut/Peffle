@@ -18,6 +18,8 @@ Peffle runs inside your agent process. There is no external service required for
 
 Repository: [github.com/Sai-Vidyut/Peffle](https://github.com/Sai-Vidyut/Peffle) · Requires **Node.js 18+** (uses a native SQLite binding via `better-sqlite3`).
 
+The marketing site (Next.js) lives in [`peffle-website/`](./peffle-website/). Deploy it on Vercel with **Root Directory** set to `peffle-website` — see that folder’s README.
+
 Prompt instructions are not enforcement. If an agent can call a tool, the tool call needs a real execution-time boundary.
 
 ## Try it (from npm)
