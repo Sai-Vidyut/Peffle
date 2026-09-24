@@ -60,12 +60,13 @@ const peffle = createPeffle({
     id: "cli",
     n: "04",
     title: "Operate from the CLI",
-    body: "Inspect pending approvals, kill an agent, or dump the ledger from the terminal.",
-    code: `npx peffle pending
+    body: "Use interactive chat or classic commands for approvals, kill switch, and the ledger.",
+    code: `npx peffle chat
+npx peffle pending
 npx peffle approve <eventId>
 npx peffle kill <agentId>
 npx peffle ledger --json`,
-    highlightLines: [1, 2, 3, 4],
+    highlightLines: [1, 2, 3, 4, 5],
     fileLabel: "shell",
   },
 ];
