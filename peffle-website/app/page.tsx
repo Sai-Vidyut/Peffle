@@ -427,7 +427,9 @@ export default function Home() {
               <p className="-mt-1.5 max-w-[68ch] text-[var(--muted)]">
                 Peffle depends on <code className="font-mono">better-sqlite3</code>, a native module.
                 It normally pulls a prebuilt binary. If it compiles instead, run{" "}
-                <code className="font-mono">xcode-select --install</code> first.
+                <code className="font-mono">xcode-select --install</code> first. For{" "}
+                <code className="font-mono">npx peffle chat</code>, configure Gemini/Groq once in{" "}
+                <code className="font-mono">~/.config/peffle/.env</code> (see the repo README).
               </p>
             </div>
 
